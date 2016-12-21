@@ -54,13 +54,13 @@
 
 \title{	
 \normalfont \normalsize 
-\textsc{Master SAR} \\ [25pt] % Your university, school and/or department name(s)
+\textsc{university, school or department name} \\ [25pt] % Your university, school and/or department name(s)
 \horrule{0.5pt} \\[0.4cm] % Thin top horizontal rule
-\huge Projet ARA \\ % The assignment title
+\huge Assignment Title \\ % The assignment title
 \horrule{2pt} \\[0.5cm] % Thick bottom horizontal rule
 }
 
-\author{Alexandra Hospital, Thomas Medioni} % Your name
+\author{John Smith} % Your name
 
 \date{\normalsize\today} % Today's date or a custom date
 
@@ -72,42 +72,7 @@
 %	PROBLEM 1
 %----------------------------------------------------------------------------------------
 
-\section{Exercice 1}
-
-\subsection{q1}
-
-L'article traite des problèmes d'élection de leader au sein d'un système mobile ad hoc. En utilisant l'algorithme d'arbres couvrants de Dijkstra et Scholten dans les réseaux statiques et en l'adaptant aux problématiques des réseaux mobiles ad hoc, dans lequel l'état des composantes connexes n'est pas assuré dans le temps, les auteurs fournissent un algorithme permettant d'assurer à terme un leader unique par composante connexe. Le taux d'élection est supérieur à 95 pourcent en fonction de l'algorithme de transport.
-
-\subsection{q2}
-
-L'algorithme fait les hypothèses suivantes sur le système :
-
-Il est modélisable par un graphe dynamique non orienté dont les noeuds sont mobiles et les arêtes représentent l'existence d'une connexion entre deux noeuds, c'est-à-dire la capacité pour un noeud à communiquer directement avec un autre.
-
-Chaque noeud possède une valeur exprimant son aptitude à être leader ainsi qu'un identifiant unique et ordonné. La valeur du noeud la plus élevée représente le noeud le plus apte à être leader, l'identifiant unique sert à départager deux candidats à aptitudes égales.
-
-Les canaux de communication entre les noeuds sont bidirectionnels et respectent un ordre FIFO entre deux noeuds adjacents.
-
-La mobilité des noeuds peut impliquer des changements de topologie entraînant des partitions ou des fusions du réseau. De plus, les noeuds peuvent crasher de manière arbitraire .
-
-Les messages ne sont délivrés que si l'émetteur et le récepteur sont connectés durant l'émission du message.
-
-Les buffers de réception sont infiniment larges de manière à ce que il n'y ait jamais de dépassement de capacité.
-
-Les communications s'effectuent par échange de messages point-à-point de manière asynchrone.
-
-\subsection{q3}
-
-Les élections concurrentes au sein d'une même composante connexe sont gérées grâce au couple de valeurs <num, id> selon la règle suivante :
-Soient <num1, id1> et <num2, id2> deux indexes de noeuds concurrents. le noeud possédant le num le plus grand l'emporte.
-Si num1 = num2, le noeud qui a le plus grand identifiant l'emporte.
-
-C'est le consensus : tous les noeuds s'accordent sur un noeud qui lancera l'élection (qui sera la racine de l'arbre).
-
-
-\subsection{q4}
-
-
+\section{Problem title}
 
 \lipsum[2] % Dummy text
 
