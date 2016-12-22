@@ -109,7 +109,7 @@ C'est le consensus : tous les noeuds s'accordent sur un noeud qui lancera l'éle
 
 Processus i :
 
-Variable locale :
+Variables locales :
 Ni // tableau de voisins
 Si  // tableau de voisins dont on attend encore un message ack (NULL au debut)
 parent // initialisé à null
@@ -139,7 +139,14 @@ upon reception <leader, j>
 	send <leader, i> to Ni \ parent
 
 
-Complexité en messages : 
+Complexité en messages : O(n)
+Chaque noeud envoie un message Election à tous ses voisins sauf son parent et attend un ack d'eux.
+Le noeud source "broadcast" la valeur du leader.
+
+ 
+\subsection{q5}
+C'est le système de heartbeat avec temporisation : si on ne reçoit pas de message "je suis en vie" d'un noeud depuis un certain temps borné, on considère qu'il est en panne. 
+
 \lipsum[2] % Dummy text
 
 \begin{align} 
