@@ -147,6 +147,13 @@ Le noeud source "broadcast" la valeur du leader.
 \subsection{q5}
 C'est le système de heartbeat avec temporisation : si on ne reçoit pas de message "je suis en vie" d'un noeud depuis un certain temps borné, on considère qu'il est en panne. 
 
+\subsection{q6}
+
+Le modèle de mobilité Random Waypoint est utilisé pour simuler les changements de position, vitesse, et accéleration en fonction du temps. Ce modèle est fortement utilisé
+pour étudier les comportements des noeuds au sein des MANET. Chaque noeud est d'abord immobile pendant un nombre fixé de secondes, puis choisis une destination aléatoire, ainsi qu'une vitesse aléatoire choisie entre une borne
+minimum et maximum. Le noeud se déplace alors jusqu'à sa destination puis effectue une pause avant de choisir une nouvelle destination et une nouvelle vitesse de manière aléatoire. Ce comportement est observé par tous les noeuds jusqu'à 
+la fin de la simulation.
+
 \lipsum[2] % Dummy text
 
 \begin{align} 
