@@ -111,7 +111,7 @@ Processus i :
 
 Variable locale :
 Ni // tableau de voisins
-Si  // tableau de voisins dont on attend encore un message ack
+Si  // tableau de voisins dont on attend encore un message ack (NULL au debut)
 parent // initialisé à null
 
 Leader\_election() {
@@ -122,7 +122,7 @@ Leader\_election() {
 upon reception <election, j>
 	if parent == null
 		parent = j
-		Si = Si \ parent
+		Si = Ni \ parent
 		send <election, i> to Si
 		while (Si not empty)
 			wait unti receive <ack, s>
