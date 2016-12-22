@@ -107,8 +107,39 @@ C'est le consensus : tous les noeuds s'accordent sur un noeud qui lancera l'éle
 
 \subsection{q4}
 
+Processus i :
+
+Variable locale :
+Ni // tableau de voisins
+Si  // tableau de voisins dont on attend encore un message ack
+parent // initialisé à null
+
+Leader\_election() {
+	if i == source
+		send <election, i> to Ni	
+}
+
+upon reception <election, j>
+	if parent == null
+		parent = j
+		Si = Si \ parent
+		send <election, i> to Si
+		while (Si not empty)
+			wait unti receive <ack, s>
+			upon reception <ack, s>
+			Si = Si \ s
+
+	send <ack, i> to parent
+			
+
+upon reception <ack, j>
+	Si = Si \ j
+
+upon reception <leader, j>
+	send <leader, i> to Ni \ parent
 
 
+Complexité en messages : 
 \lipsum[2] % Dummy text
 
 \begin{align} 
