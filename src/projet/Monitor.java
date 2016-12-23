@@ -78,6 +78,16 @@ public class Monitor extends JPanel implements Control {
 	    frame.getContentPane().add( this);  
 	    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	    frame.setVisible(true);
+	    
+	    //setup all nodes movement
+	    for(int i = 0 ; i< Network.size() ; i++)
+	    {
+	    	System.out.println("hello");
+	    	Node n = Network.get(i);
+	    	PositionProtocol pos = (PositionProtocol) n.getProtocol(position_pid);
+	    	pos.processEvent(n, position_pid, null);
+	    }
+	    
 	}
 	
 	

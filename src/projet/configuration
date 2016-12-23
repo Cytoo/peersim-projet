@@ -25,7 +25,7 @@ control.monitor.time_slow 1000
 protocol.positionprotocol RandomWayPointProtocol
 protocol.positionprotocol.vmin 1
 protocol.positionprotocol.vmax 3
-protocol.positionprotocol.pausetime 100
+protocol.positionprotocol.pausetime 1
 protocol.positionprotocol.width 500
 protocol.positionprotocol.height 500 
 

@@ -25,6 +25,8 @@ public class RandomWayPointProtocol implements PositionProtocol {
 	private double speed;
 	private int destinx;
 	private int destiny;
+	private int posx;
+	private int posy;
 
 	
 	public RandomWayPointProtocol(String prefix)
@@ -38,7 +40,10 @@ public class RandomWayPointProtocol implements PositionProtocol {
 		width=Configuration.getInt(prefix+"."+PAR_WIDTH);
 		height=Configuration.getInt(prefix+"."+PAR_HEIGHT);
 		
-	
+		posx = CommonState.r.nextInt(width);
+		posy = CommonState.r.nextInt(height);
+		System.out.println("x : " + posx + " y : " + posy);
+		
 		chooseNewDestination();	
 	}
 	
@@ -46,8 +51,11 @@ public class RandomWayPointProtocol implements PositionProtocol {
 	public Object clone() {
 		RandomWayPointProtocol rp = null;
 		try { rp = (RandomWayPointProtocol) super.clone();
-		
-		
+			rp.posx = CommonState.r.nextInt(width);
+			rp.posy = CommonState.r.nextInt(height);
+			System.out.println("Cloned .x : " + rp.posx + " y : " + rp.posy);
+			rp.chooseNewDestination();
+			System.out.println("Cloned destination .x : " + rp.destinx + " y : " + rp.destiny);
 		}
 		catch( CloneNotSupportedException e ) {} // never happens
 		return rp;
@@ -59,26 +67,43 @@ public class RandomWayPointProtocol implements PositionProtocol {
 			throw new RuntimeException("Receive Message for wrong protocol");
 		}
 		
-		//EDSimulator.add(pause * 1000, null, node, pid);
+		double distance = Math.sqrt(((destinx - posx) * (destinx - posx) + (destiny - posy) * (destiny - posy)));
+		
+		if(distance < speed)
+		{
+			posx = destinx;
+			posy = destiny;
+			
+			//on est arrivé
+			chooseNewDestination();
+			EDSimulator.add(pause * 1000, null, node, pid);
+		}
+		else
+		{
+			posx += 10;
+			posy += 0;
+			EDSimulator.add(1000, null, node, pid);
+		}
+		
 		
 	}
 
 	@Override
 	public double getY() {
 		// TODO Auto-generated method stub
-		return 0;
+		return posy;
 	}
 
 	@Override
 	public double getX() {
 		// TODO Auto-generated method stub
-		return 0;
+		return posx;
 	}
 
 	@Override
 	public int getMaxSpeed() {
 		// TODO Auto-generated method stub
-		return 0;
+		return vmax;
 	}
 
 	@Override
@@ -94,14 +119,13 @@ public class RandomWayPointProtocol implements PositionProtocol {
 
 	@Override
 	public int getTimePause() {
-		// TODO Auto-generated method stub
-		return 0;
+		return pause;
 	}
 	private void chooseNewDestination()
 	{
 		speed = CommonState.r.nextDouble() * (vmax - vmin) + vmin;
-		destinx = CommonState.r.nextInt() % width;
-		destiny = CommonState.r.nextInt() % height;	
+		destinx = CommonState.r.nextInt(width);
+		destiny = CommonState.r.nextInt(height);	
 	}
 
 }
