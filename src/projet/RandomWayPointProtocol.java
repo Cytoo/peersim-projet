@@ -1,7 +1,10 @@
 package projet;
 
 import peersim.config.Configuration;
+import peersim.core.CommonState;
+import peersim.core.Network;
 import peersim.core.Node;
+import peersim.edsim.EDSimulator;
 
 public class RandomWayPointProtocol implements PositionProtocol {
 
@@ -11,14 +14,18 @@ public class RandomWayPointProtocol implements PositionProtocol {
 	private static final String PAR_WIDTH = "width";
 	private static final String PAR_HEIGHT = "height";
 	
-	private int vmin;
-	private int vmax;
-	private int pause;
-	private int width;
-	private int height;
+	private final int vmin;
+	private final int vmax;
+	private final int pause;
+	private final int width;
+	private final int height;
 	
 	private final int protocol_id;
 	
+	private double speed;
+	private int destinx;
+	private int destiny;
+
 	
 	public RandomWayPointProtocol(String prefix)
 	{
@@ -30,6 +37,9 @@ public class RandomWayPointProtocol implements PositionProtocol {
 		pause=Configuration.getInt(prefix+"."+PAR_PAUSE);
 		width=Configuration.getInt(prefix+"."+PAR_WIDTH);
 		height=Configuration.getInt(prefix+"."+PAR_HEIGHT);
+		
+	
+		chooseNewDestination();	
 	}
 	
 	@Override
@@ -49,7 +59,8 @@ public class RandomWayPointProtocol implements PositionProtocol {
 			throw new RuntimeException("Receive Message for wrong protocol");
 		}
 		
-
+		//EDSimulator.add(pause * 1000, null, node, pid);
+		
 	}
 
 	@Override
@@ -72,20 +83,25 @@ public class RandomWayPointProtocol implements PositionProtocol {
 
 	@Override
 	public double getMaxX() {
-		// TODO Auto-generated method stub
-		return 0;
+		return width;
 	}
 
 	@Override
 	public double getMaxY() {
 		// TODO Auto-generated method stub
-		return 0;
+		return height;
 	}
 
 	@Override
 	public int getTimePause() {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+	private void chooseNewDestination()
+	{
+		speed = CommonState.r.nextDouble() * (vmax - vmin) + vmin;
+		destinx = CommonState.r.nextInt() % width;
+		destiny = CommonState.r.nextInt() % height;	
 	}
 
 }

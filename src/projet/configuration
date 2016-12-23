@@ -4,13 +4,22 @@ random.seed 6
 network.size 5
 
 
-simulation.endtime 10000
+simulation.endtime 20000
 
-init.appinit Monitor
-init.appinit.electionprotocol electionprotocol
-init.appinit.positionprotocol positionprotocol
-init.appinit.emitter emitter
-init.appinit.time_slow 1000
+#init.appinit Monitor
+#init.appinit.electionprotocol electionprotocol
+#init.appinit.positionprotocol positionprotocol
+#init.appinit.emitter emitter
+#init.appinit.time_slow 1000
+
+control.monitor Monitor
+control.monitor.from 0
+control.monitor.until 20000
+control.monitor.step 1000
+control.monitor.electionprotocol electionprotocol
+control.monitor.positionprotocol positionprotocol
+control.monitor.emitter emitter
+control.monitor.time_slow 1000
 
 
 protocol.positionprotocol RandomWayPointProtocol
