@@ -1,10 +1,10 @@
 simulation.experiments 1
 
-random.seed 6
+random.seed 7
 network.size 5
 
 
-simulation.endtime 20000
+simulation.endtime 100000
 
 #init.appinit Monitor
 #init.appinit.electionprotocol electionprotocol
@@ -14,7 +14,7 @@ simulation.endtime 20000
 
 control.monitor Monitor
 control.monitor.from 0
-control.monitor.until 20000
+#control.monitor.until 20000
 control.monitor.step 1000
 control.monitor.electionprotocol electionprotocol
 control.monitor.positionprotocol positionprotocol
@@ -24,7 +24,7 @@ control.monitor.time_slow 1000
 
 protocol.positionprotocol RandomWayPointProtocol
 protocol.positionprotocol.vmin 1
-protocol.positionprotocol.vmax 3
+protocol.positionprotocol.vmax 20
 protocol.positionprotocol.pausetime 1
 protocol.positionprotocol.width 500
 protocol.positionprotocol.height 500 
