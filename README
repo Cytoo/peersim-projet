@@ -1,3 +1,5 @@
 in eclipse :
 	*Add jars contained in /peersim-lib to build path
 	*Right click Referenced libraries -> peersim-1.0.5.jar -> Properties -> Source Attachment /peersim-lib/src.zip
+    *Right click on Project -> Properties -> Run/Debug Settings -> Edit Simulator config -> Tab argument -> absolute link to config file
+

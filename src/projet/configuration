@@ -1,0 +1,7 @@
+simulation.experiments 1
+
+random.seed 6
+
+simulation.endtime 10000
+
+network.size 5
