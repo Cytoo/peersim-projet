@@ -30,5 +30,9 @@ protocol.positionprotocol.width 500
 protocol.positionprotocol.height 500 
 
 protocol.emitter		  EmitterImpl
+protocol.emitter.electionprotocol electionprotocol
+protocol.emitter.latency 42
+protocol.emitter.scope 42
+
 protocol.electionprotocol ElectionProtocolImpl
 
