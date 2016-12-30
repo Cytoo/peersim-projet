@@ -82,7 +82,6 @@ public class Monitor extends JPanel implements Control {
 	    //setup all nodes movement
 	    for(int i = 0 ; i< Network.size() ; i++)
 	    {
-	    	System.out.println("hello");
 	    	Node n = Network.get(i);
 	    	
 	    	//Send the first "move" information to positionprotocol

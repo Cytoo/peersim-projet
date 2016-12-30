@@ -1,30 +1,28 @@
 package projet;
 
 public class ElectionMessage extends Message {
+	private long compNum;
+	private long compId;
 
-	private int numSeq;
-	private long idElector;
-
-	public ElectionMessage(long idsrc, long iddest, String tag, Object content, int pid, int numSeq, long idElector) {
+	public ElectionMessage(long idsrc, long iddest, String tag, Object content, int pid, long compNum, long compId) {
 		super(idsrc, iddest, tag, content, pid);
-		this.numSeq = numSeq;
-		this.idElector = idElector;
+		this.compNum = compNum;
+		this.compId = compId;
 	}
 
-	public int getNumSeq() {
-		return numSeq;
+	public long getCompNum() {
+		return compNum;
 	}
 
-	public void setNumSeq(int numSeq) {
-		this.numSeq = numSeq;
+	public void setCompNum(int compNum) {
+		this.compNum = compNum;
 	}
 
-	public long getIdElector() {
-		return idElector;
+	public long getCompId() {
+		return compId;
 	}
 
-	public void setIdElector(long idElector) {
-		this.idElector = idElector;
+	public void setCompId(long compId) {
+		this.compId = compId;
 	}
-
 }

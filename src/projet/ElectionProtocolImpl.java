@@ -21,11 +21,17 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 	
 	private List<Long> neighbors = new ArrayList<Long>(); 
 	private List<Long> alive     = new ArrayList<Long>();
+	private List<Long> pending   = new ArrayList<Long>(); // set of nodes from which we hear an ack from
 	private int myValue;
-	private boolean inElection;
-	private int idLeader;
-	private int numSeq = 0;
 	
+	
+	private boolean inElection; //a binary variable indicating if is currently in an election or not
+	private boolean ack = false; // a binary variable indicating if has sent ack to parent or not
+	private long idLeader; // leader
+	private int numSeq = 0;
+	private long parent; // parent node in the spanning tree
+	private long compId; // computation-idex id
+	private long compNum; // computation-idex num
 	
 	public ElectionProtocolImpl(String prefix) {
 		String tmp[] = prefix.split("\\.");
@@ -38,7 +44,7 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 		inElection = true;
 	}
 
-	private void newElection(Node node, int pid) {
+	public void newElection(Node node, int pid) {
 		//inElection = true;
 
 		Emitter em = (Emitter) node.getProtocol(emitter_id);
@@ -57,7 +63,6 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 			ep.myValue = CommonState.r.nextInt(maxvalue);
 			ep.numSeq = 0;
 			ep.inElection = true;
-	
 			
 		} catch (CloneNotSupportedException e) {
 		} // never happens
@@ -84,9 +89,54 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 			}
 			
 		}
-		else if (event instanceof ElectionMessage) {			
+		else if (event instanceof ElectionMessage)
+		{			
 			ElectionMessage msg = (ElectionMessage) event;
-
+			// If we have a leader
+			if (!inElection) 
+			{
+				inElection = true;
+				compId = msg.getCompId();
+				compNum = msg.getCompNum();
+				parent = msg.getIdSrc();
+				pending = new ArrayList<Long>();
+				ack = false;
+			}
+			else 
+			{
+				// If we are already in election and we receive election message from someone who is not 
+				// our parent
+				if (msg.getCompNum() == compNum && msg.getCompId() == compId)
+				{
+					Emitter em = (Emitter) node.getProtocol(emitter_id);
+					em.emit(node, new AckMessage(node.getID(), msg.getIdSrc(), "ack", null, protocol_id, -1, node.getID()));
+					return;
+				}
+				// Compare computation-index
+				if ((msg.getCompNum() > compNum) || ((msg.getCompNum() == compNum) && (msg.getCompId() > compId)))
+				{
+					compNum = msg.getCompNum();
+					compId = msg.getCompId();
+					parent = msg.getIdSrc();
+					pending = new ArrayList<Long>();
+					ack = false;
+				}
+				else
+				{
+					return; //Election sent does not win over the current. Discarded.
+				}
+				
+			}
+			// We forward the election message to all neighbors except parent
+			for(Long n : neighbors)
+			{
+				if(n != parent)
+				{
+					Emitter em = (Emitter) node.getProtocol(emitter_id);
+					em.emit(node, new ElectionMessage(node.getID(), n, "election", null, protocol_id, compNum, compId));
+					pending.add(n);
+				}
+			}
 			
 		}
 		
@@ -99,15 +149,30 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 				//TODO
 			}
 		}
+		
+		/*********
+		 * **
+		 * ** 	DELTA UPDATE **
+		 * PROBE HEARBEAT
+		 */
 		else if(event == null)
 		{
-			ListIterator<Long> it = getNeighbors().listIterator(); 
+			ListIterator<Long>  it = getNeighbors().listIterator(); 
 			while(it.hasNext())
 			{
 				Long id = it.next();
 				if(!alive.contains(id))
 				{
 					it.remove();
+					
+					// We don't expect ack from this node anymore
+					pending.remove(id);
+					
+					/* page 6, para 2
+					 * TODO TODO TODO
+					 * if lose parent
+					 * we send Leader cause we can't participate in current election (IF WE ARE IN ELECTION)
+					 */
 				}
 			}
 			alive.clear();
@@ -131,8 +196,7 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 	}
 
 	@Override
-	public int getMyValue() {
-		// TODO Auto-generated method stub
+	public int getMyValue() {	
 		return myValue;
 	}
 
@@ -140,4 +204,6 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 	public List<Long> getNeighbors() {
 		return neighbors;
 	}
+	
+	
 }

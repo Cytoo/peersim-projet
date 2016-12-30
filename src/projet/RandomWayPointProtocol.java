@@ -41,7 +41,6 @@ public class RandomWayPointProtocol implements PositionProtocol {
 		
 		posx = CommonState.r.nextInt(width);
 		posy = CommonState.r.nextInt(height);
-		System.out.println("x : " + posx + " y : " + posy);
 		
 		chooseNewDestination();	
 	}
@@ -52,9 +51,7 @@ public class RandomWayPointProtocol implements PositionProtocol {
 		try { rp = (RandomWayPointProtocol) super.clone();
 			rp.posx = CommonState.r.nextInt(width);
 			rp.posy = CommonState.r.nextInt(height);
-			System.out.println("Cloned .x : " + rp.posx + " y : " + rp.posy);
 			rp.chooseNewDestination();
-			System.out.println("Cloned destination .x : " + rp.destinx + " y : " + rp.destiny + "speed" + rp.speed);
 		}
 		catch( CloneNotSupportedException e ) {} // never happens
 		return rp;
