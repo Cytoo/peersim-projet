@@ -158,7 +158,15 @@ On ajoute ensuite dans la file d'événements un événement différent des mess
 
 
 \subsection{q4}
+Chaque noeud tire sa valeur de décision aléatoirement. Pour cela nous avons défini une valeur maximum dans le fichier de configuration.\\
+Un noeud qui n'a pas de leader lance une élection.
 
+Lorsqu'on reçoit un message élection d'un noeud qui n'est pas notre parent, cela signifie qu'une élection à laquelle on fait partie a déjà commencé : on renvoie donc un ack à ce noeud.
+Nous avons donc besoin de différencier un ack d'un noeud "cousin" d'un ack d'un noeud "enfant", lorsqu'on remonte l'arbre à partir des feuilles.
+Ici nous avons choisi de renvoyer la valeur de décision -1 lorsque l'ack vient d'un noeud qui n'est pas notre enfant. 
+
+Problème : si un noeud sort de notre réseau alors qu'on lui a envoyé un message élection, on va attendre son ack indéfiniment. 
+Pour résoudre ce problème, lors du traitement de l'événement "delta", lorsqu'un noeud sort de nos voisins on le supprime également de la liste des noeuds dont on attend un ack.
 
 \subsection{q5}
 
