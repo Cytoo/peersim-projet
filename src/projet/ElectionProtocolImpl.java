@@ -5,20 +5,26 @@ import java.util.List;
 import java.util.ListIterator;
 
 import peersim.config.Configuration;
+import peersim.core.CommonState;
 import peersim.core.Node;
 import peersim.edsim.EDSimulator;
 
 public class ElectionProtocolImpl implements ElectionProtocol {
 	private static final String PAR_EMITTERID = "emitter";
 	private static final String PAR_TIMEOUT = "timeout";
+	private static final String PAR_MAXVALUE = "maxvalue";
 	
 	private final int protocol_id;
 	private final int emitter_id;
 	private final int timeout;
+	private final int maxvalue;
 	
 	private List<Long> neighbors = new ArrayList<Long>(); 
 	private List<Long> alive     = new ArrayList<Long>();
-
+	private int myValue;
+	private boolean inElection;
+	private int idLeader;
+	private int numSeq = 0;
 	
 	
 	public ElectionProtocolImpl(String prefix) {
@@ -26,6 +32,19 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 		protocol_id = Configuration.lookupPid(tmp[tmp.length - 1]);
 		emitter_id = Configuration.getPid(prefix + "." + PAR_EMITTERID);
 		timeout = Configuration.getInt(prefix + "." + PAR_TIMEOUT);
+		maxvalue = Configuration.getInt(prefix + "." + PAR_MAXVALUE);
+		
+		myValue = CommonState.r.nextInt(maxvalue);
+		inElection = true;
+	}
+
+	private void newElection(Node node, int pid) {
+		//inElection = true;
+
+		Emitter em = (Emitter) node.getProtocol(emitter_id);
+		em.emit(node, new ElectionMessage(node.getID(), Emitter.ALL, "election", null, protocol_id, numSeq, node.getID()));
+		numSeq++;
+		
 	}
 
 	@Override
@@ -35,6 +54,10 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 			ep = (ElectionProtocolImpl) super.clone();
 			ep.neighbors = new ArrayList<Long>();
 			ep.alive	 = new ArrayList<Long>();
+			ep.myValue = CommonState.r.nextInt(maxvalue);
+			ep.numSeq = 0;
+			ep.inElection = true;
+	
 			
 		} catch (CloneNotSupportedException e) {
 		} // never happens
@@ -61,6 +84,12 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 			}
 			
 		}
+		else if (event instanceof ElectionMessage) {			
+			ElectionMessage msg = (ElectionMessage) event;
+
+			
+		}
+		
 		else if (event instanceof Message) {			
 			Message msg = (Message) event;
 
@@ -93,20 +122,18 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 
 	@Override
 	public boolean isInElection() {
-		// TODO Auto-generated method stub
-		return false;
+		return inElection;
 	}
 
 	@Override
 	public long getIDLeader() {
-		// TODO Auto-generated method stub
-		return 0;
+		return idLeader;
 	}
 
 	@Override
 	public int getMyValue() {
 		// TODO Auto-generated method stub
-		return 0;
+		return myValue;
 	}
 
 	@Override
