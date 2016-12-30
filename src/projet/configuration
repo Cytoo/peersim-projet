@@ -24,11 +24,18 @@ control.monitor.time_slow 1000
 
 protocol.positionprotocol RandomWayPointProtocol
 protocol.positionprotocol.vmin 1
-protocol.positionprotocol.vmax 20
+protocol.positionprotocol.vmax 5
 protocol.positionprotocol.pausetime 1
 protocol.positionprotocol.width 500
 protocol.positionprotocol.height 500 
 
-protocol.emitter		  EmitterImpl
+protocol.emitter		  		   EmitterImpl
+protocol.emitter.electionprotocol  electionprotocol
+protocol.emitter.latency 		   42
+protocol.emitter.scope             42
+protocol.emitter.positionprotocol  positionprotocol
+
 protocol.electionprotocol ElectionProtocolImpl
+protocol.electionprotocol.timeout 5000
+protocol.electionprotocol.emitter emitter
 

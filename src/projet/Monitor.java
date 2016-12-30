@@ -84,9 +84,16 @@ public class Monitor extends JPanel implements Control {
 	    {
 	    	System.out.println("hello");
 	    	Node n = Network.get(i);
+	    	
+	    	//Send the first "move" information to positionprotocol
 	    	PositionProtocol pos = (PositionProtocol) n.getProtocol(position_pid);
 	    	pos.processEvent(n, position_pid, null);
+	    
+	    	//Initiate the first probe message
+	    	ElectionProtocol el = (ElectionProtocol) n.getProtocol(election_pid);
+	    	el.processEvent(n, election_pid, null);
 	    }
+	    
 	    
 	}
 	

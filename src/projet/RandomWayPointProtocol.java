@@ -2,7 +2,6 @@ package projet;
 
 import peersim.config.Configuration;
 import peersim.core.CommonState;
-import peersim.core.Network;
 import peersim.core.Node;
 import peersim.edsim.EDSimulator;
 

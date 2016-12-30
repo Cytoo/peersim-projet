@@ -18,33 +18,17 @@
 %	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
 %----------------------------------------------------------------------------------------
 
-\documentclass[paper=a4, fontsize=11pt]{scrartcl} % A4 paper and 11pt font size
-
+\documentclass[paper=a4, fontsize=11pt]{report} % A4 paper and 11pt font size
+\usepackage[margin=0.7in]{geometry}
 \usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
-\usepackage{fourier} % Use the Adobe Utopia font for the document - comment this line to return to the LaTeX default
-\usepackage[english]{babel} % English language/hyphenation
+%\usepackage{fourier} % Use the Adobe Utopia font for the document - comment this line to return to the LaTeX default
+\usepackage[francais]{babel} % English language/hyphenation
+\usepackage[utf8]{inputenc}
+\usepackage[babel=true]{csquotes} 
 \usepackage{amsmath,amsfonts,amsthm} % Math packages
 
 \usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
 
-\usepackage{sectsty} % Allows customizing section commands
-\allsectionsfont{\centering \normalfont\scshape} % Make all sections centered, the default font and small caps
-
-\usepackage{fancyhdr} % Custom headers and footers
-\pagestyle{fancyplain} % Makes all pages in the document conform to the custom headers and footers
-\fancyhead{} % No page header - if you want one, create it in the same way as the footers below
-\fancyfoot[L]{} % Empty left footer
-\fancyfoot[C]{} % Empty center footer
-\fancyfoot[R]{\thepage} % Page numbering for right footer
-\renewcommand{\headrulewidth}{0pt} % Remove header underlines
-\renewcommand{\footrulewidth}{0pt} % Remove footer underlines
-\setlength{\headheight}{13.6pt} % Customize the height of the header
-
-\numberwithin{equation}{section} % Number equations within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
-\numberwithin{figure}{section} % Number figures within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
-\numberwithin{table}{section} % Number tables within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
-
-\setlength\parindent{0pt} % Removes all indentation from paragraphs - comment this line for an assignment with lots of text
 
 %----------------------------------------------------------------------------------------
 %	TITLE SECTION
@@ -153,6 +137,30 @@ Le modèle de mobilité Random Waypoint est utilisé pour simuler les changement
 pour étudier les comportements des noeuds au sein des MANET. Chaque noeud est d'abord immobile pendant un nombre fixé de secondes, puis choisit une destination aléatoire, ainsi qu'une vitesse aléatoire choisie entre une borne
 minimum et maximum. Le noeud se déplace alors jusqu'à sa destination puis effectue une pause avant de choisir une nouvelle destination et une nouvelle vitesse de manière aléatoire. Ce comportement est observé par tous les noeuds jusqu'à 
 la fin de la simulation.
+
+\section{Exercice 2}
+Dans cette section, nous allons expliquer nos choix d'implémentation des algorithmes de l'exerccice 2.
+
+\subsection{q1}
+Classe RandomWayPointProtocol.java \\
+Chaque noeud va tirer aléatoirement sa position x et y de départ et de destination. 
+Dans la fonction processEvent TODOOOOOOOOOOOOOOOOOOOOO
+
+\subsection{q2}
+Classe EmitterImpl.java\\
+La méthode d'émission envoie un message à chaque noeud qui fait partie de ses voisins, c'est-à-dire qui est à une distance inférieure à scope.
+
+\subsection{q3}
+Classe ElectionProtocolImpl.java \\
+Pour implémenter les messages Probe, nous avons décidé d'utiliser une liste supplémentaire pour stocker les noeuds en vie : ceux dont on a reçu un message Probe depuis le dernier delta. On vide cette liste tous les delta temps.
+A chaque timer delta, on va faire la différence entre la liste de voisins et la liste des noeuds en vie. Si un noeud n'est pas dans la liste des noeuds en vie, cela signifie qu'on n'a pas reçu de message Probe depuis delta temps au moins, donc il n'est plus considéré comme un voisin.
+On ajoute ensuite dans la file d'événements un événement différent des messages pour se \enquote{réveiller} au bout de delta temps.
+
+
+\subsection{q4}
+
+
+\subsection{q5}
 
 \lipsum[2] % Dummy text
 
