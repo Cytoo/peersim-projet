@@ -50,11 +50,22 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 	public void newElection(Node node, int pid) {
 		//inElection = true;
 
-		Emitter em = (Emitter) node.getProtocol(emitter_id);
-		
+
 		pending = new ArrayList<Long>();
 		compId = node.getID();
 		compNum = numSeq;
+
+		ack = false;
+		leaderValue = myValue;
+		idLeader = node.getID();	
+			
+		Emitter em = (Emitter) node.getProtocol(emitter_id);
+
+		if (neighbors.isEmpty()) {
+			inElection = false;
+			return;
+		}	
+
 		for(Long n : neighbors)
 		{
 			em.emit(node, new ElectionMessage(node.getID(), n, "election", null, protocol_id, compNum, compId));
@@ -64,10 +75,6 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 		numSeq++;
 		inElection = true;
 		parent = -1;
-
-		ack = false;
-		leaderValue = myValue;
-		idLeader = node.getID();
 	}
 
 	@Override
@@ -248,6 +255,7 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 			else
 			{
 				//TODO q5
+				
 			}
 		}
 		else if (event instanceof Message) {			
