@@ -25,4 +25,10 @@ public class AckMessage extends Message {
 	public void setIdMaxValue(long idMaxValue) {
 		this.idMaxValue = idMaxValue;
 	}
+	
+	public String toString()
+	{
+		return "Ack [#" + getIdSrc() + "] -> [#"+ getIdDest() + "] with maxvalue {" + value + "} on [#" + idMaxValue + "]";
+	}
+	
 }

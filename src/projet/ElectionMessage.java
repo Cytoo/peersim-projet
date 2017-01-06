@@ -25,4 +25,10 @@ public class ElectionMessage extends Message {
 	public void setCompId(long compId) {
 		this.compId = compId;
 	}
+	
+	public String toString()
+	{
+		return "Election [#" + getIdSrc() + "] -> [#"+ getIdDest() + "] with computation id <" + compNum + "," + compId + ">";
+	}
+	
 }

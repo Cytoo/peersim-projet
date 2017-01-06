@@ -11,6 +11,7 @@ import peersim.config.Configuration;
 import peersim.core.Control;
 import peersim.core.Network;
 import peersim.core.Node;
+import peersim.edsim.EDSimulator;
 
 public class Monitor extends JPanel implements Control {
 
@@ -89,9 +90,11 @@ public class Monitor extends JPanel implements Control {
 	    	pos.processEvent(n, position_pid, null);
 	    
 	    	//Initiate the first probe message
-	    	ElectionProtocol el = (ElectionProtocol) n.getProtocol(election_pid);
+	    	ElectionProtocolImpl el = (ElectionProtocolImpl) n.getProtocol(election_pid);
 	    	el.processEvent(n, election_pid, null);
+	    	EDSimulator.add(5043,new ElectionMessage(i, i, "election", new Integer(0), election_pid, 0, 0), n, election_pid);
 	    }
+
 	    
 	    
 	}
