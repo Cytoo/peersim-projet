@@ -30,5 +30,5 @@ public class AckMessage extends Message {
 	{
 		return "Ack [#" + getIdSrc() + "] -> [#"+ getIdDest() + "] with maxvalue {" + value + "} on [#" + idMaxValue + "]";
 	}
-	
+
 }

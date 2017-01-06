@@ -26,5 +26,10 @@ public class LeaderMessage extends Message {
 		this.leaderValue = leaderValue;
 		this.idLeader = idLeader;
 	}
+	
+	public String toString()
+	{
+		return "Leader [#" + getIdSrc() + "] -> [#"+ (getIdDest() == -2 ? "ALL" : getIdSrc()) + "] with value {" + leaderValue + "} on [#" + idLeader + "]";
+	}
 
 }

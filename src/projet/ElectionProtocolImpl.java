@@ -52,17 +52,19 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 
 		Emitter em = (Emitter) node.getProtocol(emitter_id);
 		
+		pending = new ArrayList<Long>();
 		compId = node.getID();
 		compNum = numSeq;
 		for(Long n : neighbors)
 		{
-			if(node.getID() == 4) System.out.println("yo mama");
 			em.emit(node, new ElectionMessage(node.getID(), n, "election", null, protocol_id, compNum, compId));
+			pending.add(n);
+			System.out.println("[#" + node.getID() + "] New El : Added node " +n+ " to pending, size:" + pending.size());
 		}
 		numSeq++;
 		inElection = true;
 		parent = -1;
-		pending = new ArrayList<Long>();
+
 		ack = false;
 		leaderValue = myValue;
 	}
@@ -122,7 +124,6 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 			//if init
 			if(msg.getContent() != null)
 			{
-				System.out.println("empty election message on " + node.getID() + "number of neighbors " + neighbors.size() );
 				newElection(node, pid);
 				return;
 			}
@@ -173,7 +174,14 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 					Emitter em = (Emitter) node.getProtocol(emitter_id);
 					em.emit(node, new ElectionMessage(node.getID(), n, "election", null, protocol_id, compNum, compId));
 					pending.add(n);
+					System.out.println("[#" + node.getID() + "] Added node " +n+ " to pending, size:" + pending.size());
 				}
+			}
+			if(pending.isEmpty())
+			{
+				Emitter em = (Emitter) node.getProtocol(emitter_id);
+				em.emit(node, new AckMessage(node.getID(), parent, "ack", null, protocol_id, myValue, node.getID()));
+				ack = true;
 			}
 			
 		}
@@ -209,6 +217,7 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 					//forward ack to parent with maxdownstreamvalue
 					Emitter em = (Emitter) node.getProtocol(emitter_id);
 					em.emit(node, new AckMessage(node.getID(), parent, "ack", null, protocol_id, leaderValue, idLeader));
+					ack = true;
 				}	
 			}
 		}
@@ -217,9 +226,12 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 		{
 			LeaderMessage msg = (LeaderMessage) event;
 			
+			System.out.println("[#" + node.getID() + "] " + msg); 
+			
 			if(inElection)
 			{
 				if(!ack) {return;}
+				System.out.println("yoooo");
 				
 				idLeader = msg.getIdLeader();
 				leaderValue = msg.getLeaderValue();
