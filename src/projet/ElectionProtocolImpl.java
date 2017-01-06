@@ -32,6 +32,7 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 	private long parent; // parent node in the spanning tree
 	private long compId; // computation-idex id
 	private long compNum; // computation-idex num
+	private int leaderValue; //Maximum downstream value
 	
 	public ElectionProtocolImpl(String prefix) {
 		String tmp[] = prefix.split("\\.");
@@ -42,15 +43,31 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 		
 		myValue = CommonState.r.nextInt(maxvalue);
 		inElection = true;
+		parent = -1;
+		leaderValue = myValue;
 	}
 
 	public void newElection(Node node, int pid) {
 		//inElection = true;
 
 		Emitter em = (Emitter) node.getProtocol(emitter_id);
-		em.emit(node, new ElectionMessage(node.getID(), Emitter.ALL, "election", null, protocol_id, numSeq, node.getID()));
-		numSeq++;
 		
+		pending = new ArrayList<Long>();
+		compId = node.getID();
+		compNum = numSeq;
+		for(Long n : neighbors)
+		{
+			em.emit(node, new ElectionMessage(node.getID(), n, "election", null, protocol_id, compNum, compId));
+			pending.add(n);
+			System.out.println("[#" + node.getID() + "] New El : Added node " +n+ " to pending, size:" + pending.size());
+		}
+		numSeq++;
+		inElection = true;
+		parent = -1;
+
+		ack = false;
+		leaderValue = myValue;
+		idLeader = node.getID();
 	}
 
 	@Override
@@ -63,6 +80,9 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 			ep.myValue = CommonState.r.nextInt(maxvalue);
 			ep.numSeq = 0;
 			ep.inElection = true;
+			ep.parent = -1;
+			ep.leaderValue = ep.myValue;
+			ep.pending = new ArrayList<Long>();
 			
 		} catch (CloneNotSupportedException e) {
 		} // never happens
@@ -74,10 +94,19 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 		if (protocol_id != pid) {
 			throw new RuntimeException("Receive Message for wrong protocol");
 		}
-
+		if(event instanceof Message)
+		{
+			Message mg = (Message) event;
+			if (!(mg.getIdDest() == node.getID() || mg.getIdDest() == Emitter.ALL)) {
+				return;
+			}
+		}
+		
 		if (event instanceof ProbeMessage)
 		{
 			ProbeMessage msg = (ProbeMessage) event;
+			
+			System.out.println("[#" + node.getID() + "]" + msg );
 			
 			if(!getNeighbors().contains(msg.getIdSrc()))
 			{
@@ -90,8 +119,17 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 			
 		}
 		else if (event instanceof ElectionMessage)
-		{			
+		{
 			ElectionMessage msg = (ElectionMessage) event;
+			
+			//if init
+			if(msg.getContent() != null)
+			{
+				newElection(node, pid);
+				return;
+			}
+							 
+			System.out.println("[#" + node.getID() + "] " + msg); 
 			// If we have a leader
 			if (!inElection) 
 			{
@@ -101,6 +139,8 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 				parent = msg.getIdSrc();
 				pending = new ArrayList<Long>();
 				ack = false;
+				leaderValue = myValue;
+				idLeader = node.getID();
 			}
 			else 
 			{
@@ -120,6 +160,8 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 					parent = msg.getIdSrc();
 					pending = new ArrayList<Long>();
 					ack = false;
+					leaderValue = myValue;
+					idLeader = node.getID();
 				}
 				else
 				{
@@ -135,11 +177,79 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 					Emitter em = (Emitter) node.getProtocol(emitter_id);
 					em.emit(node, new ElectionMessage(node.getID(), n, "election", null, protocol_id, compNum, compId));
 					pending.add(n);
+					System.out.println("[#" + node.getID() + "] Added node " +n+ " to pending, size:" + pending.size());
 				}
+			}
+			if(pending.isEmpty())
+			{
+				Emitter em = (Emitter) node.getProtocol(emitter_id);
+				System.out.println("node id in pending.isempty() " + node.getID());
+				em.emit(node, new AckMessage(node.getID(), parent, "ack", null, protocol_id, myValue, node.getID()));
+				ack = true;
 			}
 			
 		}
+		else if (event instanceof AckMessage)
+		{
+			AckMessage msg = (AckMessage) event;
+			System.out.println("[#" + node.getID() + "] " + msg); 
+			if(msg.getValue() > leaderValue)
+			{
+				idLeader = msg.getIdMaxValue();
+				leaderValue = msg.getValue();
+			}
+			
+			pending.remove(msg.getIdSrc());
+			
+			//If we received all the acks we expected
+			if(pending.isEmpty())
+			{
+				//if we are the tree root
+				if(parent == -1)
+				{
+					//we broadcast our leader
+					Emitter em = (Emitter) node.getProtocol(emitter_id);
+					em.emit(node, new LeaderMessage(node.getID(), Emitter.ALL, "leader", null, protocol_id, leaderValue, idLeader));
+					
+					//stop participating in an election
+					inElection = false;
+				}
+				
+				//else if we are not the tree root
+				else
+				{
+					//forward ack to parent with maxdownstreamvalue
+					Emitter em = (Emitter) node.getProtocol(emitter_id);
+					em.emit(node, new AckMessage(node.getID(), parent, "ack", null, protocol_id, leaderValue, idLeader));
+					ack = true;
+				}	
+			}
+		}
 		
+		else if(event instanceof LeaderMessage)
+		{
+			LeaderMessage msg = (LeaderMessage) event;
+			
+			System.out.println("[#" + node.getID() + "] " + msg); 
+			
+			if(inElection)
+			{
+				if(!ack) {return;}
+				System.out.println("yoooo");
+				
+				idLeader = msg.getIdLeader();
+				leaderValue = msg.getLeaderValue();
+				
+				Emitter em = (Emitter) node.getProtocol(emitter_id);
+				em.emit(node, new LeaderMessage(node.getID(), Emitter.ALL, "leader", null, protocol_id, leaderValue, idLeader));
+				
+				inElection = false;
+			}
+			else
+			{
+				//TODO q5
+			}
+		}
 		else if (event instanceof Message) {			
 			Message msg = (Message) event;
 
@@ -168,11 +278,10 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 					// We don't expect ack from this node anymore
 					pending.remove(id);
 					
-					/* page 6, para 2
-					 * TODO TODO TODO
-					 * if lose parent
-					 * we send Leader cause we can't participate in current election (IF WE ARE IN ELECTION)
-					 */
+					if(id == parent)
+					{
+						parent = -1;
+					}
 				}
 			}
 			alive.clear();
