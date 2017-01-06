@@ -168,6 +168,17 @@ Ici nous avons choisi de renvoyer la valeur de décision -1 lorsque l'ack vient 
 Problème : si un noeud sort de notre réseau alors qu'on lui a envoyé un message élection, on va attendre son ack indéfiniment. 
 Pour résoudre ce problème, lors du traitement de l'événement "delta", lorsqu'un noeud sort de nos voisins on le supprime également de la liste des noeuds dont on attend un ack.
 
+Pour la gestion de quand on perd son parent : à chaque Ack émis on envoie aussi sa value. Donc chaque noeud qui reçoit un Ack qu'il attend doit comparer la valeur maximale appelée leaderValue à la valeur reçue, ainsi qu'à sa valeur, pour ne garder que la plus grande (c'est celle qui déterminera qui est le leader). On garde également l'id du noeud qui a remporté cette comparaison de valeur.
+
+Un noeud qui a reçu tous les Ack qu'il attendait et qui n'a pas de parent est le noeud qui a initialisé l'élection : c'est lui qui doit diffuser le message leader à tout le monde. Pour cela on considère que si la variable parent est à -1, cela signifie qu'on n'a pas de parent.
+
+Réception du message Leader :
+Si on est en élection, on met à jour notre idLeader, on diffuse le message leader à tous les noeuds de notre portée. On n'est plus en éléction, on a fini notre algo.
+Dans cette partie de l'algo il faut faire attention à ce qu'on reçoive le message leader au moment où on attend un, d'où la variable ack qui est mise à jour lorsqu'on envoie un ack à notre parent.
+
+
+Lancement de l'algo : newElection()
+Dans le monitor, on envoie un message élection particulier avec un objet dans le "content". A la reception de ce message dans le processEvent, chaque noeud va commencer une nouvelle élection.
 \subsection{q5}
 
 \lipsum[2] % Dummy text
