@@ -67,6 +67,7 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 
 		ack = false;
 		leaderValue = myValue;
+		idLeader = node.getID();
 	}
 
 	@Override
@@ -139,6 +140,7 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 				pending = new ArrayList<Long>();
 				ack = false;
 				leaderValue = myValue;
+				idLeader = node.getID();
 			}
 			else 
 			{
@@ -159,6 +161,7 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 					pending = new ArrayList<Long>();
 					ack = false;
 					leaderValue = myValue;
+					idLeader = node.getID();
 				}
 				else
 				{
@@ -180,6 +183,7 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 			if(pending.isEmpty())
 			{
 				Emitter em = (Emitter) node.getProtocol(emitter_id);
+				System.out.println("node id in pending.isempty() " + node.getID());
 				em.emit(node, new AckMessage(node.getID(), parent, "ack", null, protocol_id, myValue, node.getID()));
 				ack = true;
 			}
