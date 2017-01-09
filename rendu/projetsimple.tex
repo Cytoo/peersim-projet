@@ -91,16 +91,16 @@ C'est le consensus : tous les noeuds s'accordent sur un noeud qui lancera l'éle
 
 \subsection{q4}
 
-Processus i :
+\textbf{Processus i :}
 
 Variables locales :
-Ni // tableau de voisins
-Si  // tableau de voisins dont on attend encore un message ack (NULL au debut)
+\[N_{i}\] : tableau de voisins
+\[S_{i}\] : tableau de voisins dont on attend encore un message ack (NULL au debut)
 parent // initialisé à null
 
-Leader\_election() {
-	if i == source
-		send <election, i> to Ni	
+Leader\_election() {\\
+\vspace{1cm}f i == source\\
+\vspace{2cm}send <election, i> to Ni	
 }
 
 upon reception <election, j>
@@ -181,73 +181,15 @@ Lancement de l'algo : newElection()
 Dans le monitor, on envoie un message élection particulier avec un objet dans le "content". A la reception de ce message dans le processEvent, chaque noeud va commencer une nouvelle élection.
 \subsection{q5}
 
-\lipsum[2] % Dummy text
+Pour gérer la détection de la perte du leader, comme on attend un Probe message de tous nos voisins, on regarde si ce Probe message vient du leader (c'est-à-dire du noeud qui a gagné l'election, comme expliqué précedemment).
+Dans ce cas on fait suivre ce message.
+Dans le cas où on ne reçoit pas ce message \enquote{probe leader} du leader, cela signifie qu'on l'a perdu et il faut relancer une élection.
+Ce message est différencié des autres car on envoie une valeur Long dans l'object, alors que pour les autres cette valeur sera à null.
+Ce message est propagé dans tout le réseau, donc pour éviter qu'il boucle indéfiniment dans le réseau et fausse la détection de la perte du leader, on a ajouté un numéro de séquence lié au message.
+A chaque nouveau delta, on incrémente ce numéro de séquence : seqNum dans la classe ProbeMessage
+Lorsqu'on reçoit ce message, si le numéro de séquence est plus grand que celui qu'on avait (initialement 0), c'est un nouveau heartbeat du leader, on le prend en compte.
+Sinon, c'est un message qu'on a déjà reçu, on l'ignore. Réciproquement, le leader qui envoie son heartbeat incrémente ce compteur à chaque delta.
 
-\begin{align} 
-\begin{split}
-(x+y)^3 	&= (x+y)^2(x+y)\\
-&=(x^2+2xy+y^2)(x+y)\\
-&=(x^3+2x^2y+xy^2) + (x^2y+2xy^2+y^3)\\
-&=x^3+3x^2y+3xy^2+y^3
-\end{split}					
-\end{align}
-
-Phasellus viverra nulla ut metus varius laoreet. Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies
-
-%------------------------------------------------
-
-\subsection{Heading on level 2 (subsection)}
-
-Lorem ipsum dolor sit amet, consectetuer adipiscing elit. 
-\begin{align}
-A = 
-\begin{bmatrix}
-A_{11} & A_{21} \\
-A_{21} & A_{22}
-\end{bmatrix}
-\end{align}
-Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.
-
-%------------------------------------------------
-
-\subsubsection{Heading on level 3 (subsubsection)}
-
-\lipsum[3] % Dummy text
-
-\paragraph{Heading on level 4 (paragraph)}
-
-\lipsum[6] % Dummy text
-
-%----------------------------------------------------------------------------------------
-%	PROBLEM 2
-%----------------------------------------------------------------------------------------
-
-\section{Lists}
-
-%------------------------------------------------
-
-\subsection{Example of list (3*itemize)}
-\begin{itemize}
-	\item First item in a list 
-		\begin{itemize}
-		\item First item in a list 
-			\begin{itemize}
-			\item First item in a list 
-			\item Second item in a list 
-			\end{itemize}
-		\item Second item in a list 
-		\end{itemize}
-	\item Second item in a list 
-\end{itemize}
-
-%------------------------------------------------
-
-\subsection{Example of list (enumerate)}
-\begin{enumerate}
-\item First item in a list 
-\item Second item in a list 
-\item Third item in a list
-\end{enumerate}
 
 %----------------------------------------------------------------------------------------
 
