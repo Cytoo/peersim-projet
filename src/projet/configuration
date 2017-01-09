@@ -39,4 +39,6 @@ protocol.electionprotocol ElectionProtocolImpl
 protocol.electionprotocol.timeout 1000
 protocol.electionprotocol.emitter emitter
 protocol.electionprotocol.maxvalue 200
+protocol.electionprotocol.maxbeaconloss 2
+protocol.electionprotocol.beaconinterval 2
 

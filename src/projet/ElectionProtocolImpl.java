@@ -13,11 +13,15 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 	private static final String PAR_EMITTERID = "emitter";
 	private static final String PAR_TIMEOUT = "timeout";
 	private static final String PAR_MAXVALUE = "maxvalue";
+	private static final String PAR_BEACONINTERVAL = "beaconinterval";
+	private static final String PAR_MAXBEACONLOSS = "maxbeaconloss";
 	
 	private final int protocol_id;
 	private final int emitter_id;
 	private final int timeout;
 	private final int maxvalue;
+	private final int maxbeaconloss;
+	private final int beaconinterval;
 	
 	private List<Long> neighbors = new ArrayList<Long>(); 
 	private List<Long> alive     = new ArrayList<Long>();
@@ -40,6 +44,7 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 	//Leader Heartbeat related variables
 	private int 	heartbeatSeq = 1;
 	private int		lastHeartbeatSeq = 0;
+	private int 	numberbeaconLoss = 0;
 	
 	public ElectionProtocolImpl(String prefix) {
 		String tmp[] = prefix.split("\\.");
@@ -47,6 +52,8 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 		emitter_id = Configuration.getPid(prefix + "." + PAR_EMITTERID);
 		timeout = Configuration.getInt(prefix + "." + PAR_TIMEOUT);
 		maxvalue = Configuration.getInt(prefix + "." + PAR_MAXVALUE);
+		maxbeaconloss = Configuration.getInt(prefix + "." + PAR_MAXBEACONLOSS);
+		beaconinterval = Configuration.getInt(prefix + "." + PAR_BEACONINTERVAL);
 		
 		myValue = CommonState.r.nextInt(maxvalue);
 		inElection = true;
@@ -98,6 +105,7 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 			ep.pending = new ArrayList<Long>();
 			ep.lastHeartbeatSeq = 0;
 			ep.heartbeatSeq = 1;
+			ep.numberbeaconLoss = 0;
 			
 		} catch (CloneNotSupportedException e) {
 		} // never happens
@@ -130,8 +138,8 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 				{
 					lastHeartbeatSeq = msg.getSeqnum();
 					leaderAlive = true;
+					numberbeaconLoss = 0;
 					
-
 						Emitter em = (Emitter) node.getProtocol(emitter_id);
 						em.emit(node, new ProbeMessage(node.getID(), Emitter.ALL, "probe", msg.getContent(), protocol_id, msg.getSeqnum()));
 				}
@@ -250,6 +258,7 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 					inElection = false;
 					leaderAlive = true;
 					lastHeartbeatSeq = 0;
+					EDSimulator.add(beaconinterval * 1000, new Integer(0), node, pid);
 				}
 				
 				//else if we are not the tree root
@@ -259,6 +268,7 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 					Emitter em = (Emitter) node.getProtocol(emitter_id);
 					em.emit(node, new AckMessage(node.getID(), parent, "ack", null, protocol_id, leaderValue, idLeader));
 					ack = true;
+					
 				}	
 			}
 		}
@@ -284,6 +294,8 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 				inElection = false;
 				leaderAlive = true;
 				lastHeartbeatSeq = 0;
+				numberbeaconLoss = 0;
+				EDSimulator.add(beaconinterval * 1000, new Integer(0), node, pid);
 			}
 			else
 			{
@@ -306,6 +318,44 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 		 * ** 	DELTA UPDATE **
 		 * PROBE HEARBEAT
 		 */
+		else if (event instanceof Integer)
+		{
+			if(!inElection)
+			{
+				//If we have a leader we need to hear from it every so often
+				if(leaderAlive == true)
+				{
+					//Yipee yay we did
+					leaderAlive = false;
+					numberbeaconLoss = 0;
+				}
+				else if(numberbeaconLoss < maxbeaconloss)
+				{
+					//We did not hear from it every so often
+					//Need to trigger a new election
+					numberbeaconLoss++;
+					System.out.println("[#" + node.getID() + "] Lost my leader " + numberbeaconLoss + " times");	
+				}
+				else
+				{
+					System.out.println("[#" + node.getID() + "] Lost my leader");
+					newElection(node, pid);
+				}
+					
+			if(idLeader == node.getID())
+			{
+				Long probeleader = null;
+				//If we have a leader and WE are the leader
+				//we broadcast a probemessage indicating ourselves as the leader
+				probeleader = new Long(node.getID());
+			
+			
+			Emitter em = (Emitter) node.getProtocol(emitter_id);
+			em.emit(node, new ProbeMessage(node.getID(), Emitter.ALL, "probe", probeleader, protocol_id, heartbeatSeq));
+			}
+				EDSimulator.add(beaconinterval * 1000, new Integer(0), node, pid);
+			}
+		}
 		else if(event == null)
 		{
 			ListIterator<Long>  it = getNeighbors().listIterator(); 
@@ -326,34 +376,9 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 				}
 			}
 			alive.clear();
-			
-			if(!inElection)
-			{
-				//If we have a leader we need to hear from it every so often
-				if(leaderAlive == false)
-				{
-					//We did not hear from it every so often
-					//Need to trigger a new election
-					System.out.println("[#" + node.getID() + "] Lost my leader");
-					newElection(node, pid);
-				}
-				else
-				{
-					//Yipee yay we did
-					leaderAlive = false;
-				}
-			}
-			
-			Long probeleader = null;
-			if(!inElection && idLeader == node.getID())
-			{
-				//If we have a leader and WE are the leader
-				//we broadcast a probemessage indicating ourselves as the leader
-				probeleader = new Long(node.getID());
-			}
-			
+				
 			Emitter em = (Emitter) node.getProtocol(emitter_id);
-			em.emit(node, new ProbeMessage(node.getID(), Emitter.ALL, "probe", probeleader, protocol_id, heartbeatSeq));
+			em.emit(node, new ProbeMessage(node.getID(), Emitter.ALL, "probe", null, protocol_id, heartbeatSeq));
 			
 			if(!inElection && idLeader == node.getID()) { heartbeatSeq++;}
 			
