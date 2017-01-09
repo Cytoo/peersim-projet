@@ -27,12 +27,19 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 	
 	private boolean inElection; //a binary variable indicating if is currently in an election or not
 	private boolean ack = false; // a binary variable indicating if has sent ack to parent or not
-	private long idLeader; // leader
-	private int numSeq = 0;
-	private long parent; // parent node in the spanning tree
-	private long compId; // computation-idex id
-	private long compNum; // computation-idex num
-	private int leaderValue; //Maximum downstream value
+	
+	private long 	parent; // parent node in the spanning tree
+	//Computation related variables
+	private long 	compId; // computation-idex id
+	private long 	compNum; // computation-idex num
+	private int     numSeq = 0;
+	//Leader Identity and value variables
+	private int 	leaderValue; //Maximum downstream value
+	private boolean leaderAlive; //Heard from leader recently
+	private long 	idLeader; // leader
+	//Leader Heartbeat related variables
+	private int 	heartbeatSeq = 1;
+	private int		lastHeartbeatSeq = 0;
 	
 	public ElectionProtocolImpl(String prefix) {
 		String tmp[] = prefix.split("\\.");
@@ -48,9 +55,6 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 	}
 
 	public void newElection(Node node, int pid) {
-		//inElection = true;
-
-
 		pending = new ArrayList<Long>();
 		compId = node.getID();
 		compNum = numSeq;
@@ -62,7 +66,9 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 		Emitter em = (Emitter) node.getProtocol(emitter_id);
 
 		if (neighbors.isEmpty()) {
+			//If we start an election and we are with no neighbors then we are our own connex graph
 			inElection = false;
+			leaderAlive = true;
 			return;
 		}	
 
@@ -90,6 +96,8 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 			ep.parent = -1;
 			ep.leaderValue = ep.myValue;
 			ep.pending = new ArrayList<Long>();
+			ep.lastHeartbeatSeq = 0;
+			ep.heartbeatSeq = 1;
 			
 		} catch (CloneNotSupportedException e) {
 		} // never happens
@@ -115,6 +123,24 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 			
 			System.out.println("[#" + node.getID() + "]" + msg );
 			
+			//If we get a probemessageFrom leader
+			if(msg.getContent() != null && !inElection && (Long) msg.getContent() == leaderValue)
+			{
+				if(msg.getSeqnum() > lastHeartbeatSeq)
+				{
+					lastHeartbeatSeq = msg.getSeqnum();
+					leaderAlive = true;
+					
+
+						Emitter em = (Emitter) node.getProtocol(emitter_id);
+						em.emit(node, new ProbeMessage(node.getID(), Emitter.ALL, "probe", msg.getContent(), protocol_id, msg.getSeqnum()));
+				}
+			}
+			else if(msg.getContent() != null)
+			{
+				return;
+			}
+				
 			if(!getNeighbors().contains(msg.getIdSrc()))
 			{
 				getNeighbors().add(msg.getIdSrc());
@@ -122,8 +148,7 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 			if(!alive.contains(msg.getIdSrc()))
 			{
 				alive.add(msg.getIdSrc());
-			}
-			
+			}	
 		}
 		else if (event instanceof ElectionMessage)
 		{
@@ -148,6 +173,7 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 				ack = false;
 				leaderValue = myValue;
 				idLeader = node.getID();
+				lastHeartbeatSeq = 0;
 			}
 			else 
 			{
@@ -169,6 +195,7 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 					ack = false;
 					leaderValue = myValue;
 					idLeader = node.getID();
+					lastHeartbeatSeq = 0;
 				}
 				else
 				{
@@ -204,6 +231,7 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 			{
 				idLeader = msg.getIdMaxValue();
 				leaderValue = msg.getValue();
+				lastHeartbeatSeq = 0;
 			}
 			
 			pending.remove(msg.getIdSrc());
@@ -220,6 +248,8 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 					
 					//stop participating in an election
 					inElection = false;
+					leaderAlive = true;
+					lastHeartbeatSeq = 0;
 				}
 				
 				//else if we are not the tree root
@@ -246,11 +276,14 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 				
 				idLeader = msg.getIdLeader();
 				leaderValue = msg.getLeaderValue();
+				lastHeartbeatSeq = 0;
 				
 				Emitter em = (Emitter) node.getProtocol(emitter_id);
 				em.emit(node, new LeaderMessage(node.getID(), Emitter.ALL, "leader", null, protocol_id, leaderValue, idLeader));
 				
 				inElection = false;
+				leaderAlive = true;
+				lastHeartbeatSeq = 0;
 			}
 			else
 			{
@@ -286,7 +319,7 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 					// We don't expect ack from this node anymore
 					pending.remove(id);
 					
-					if(id == parent)
+					if(inElection && id == parent)
 					{
 						parent = -1;
 					}
@@ -294,8 +327,35 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 			}
 			alive.clear();
 			
+			if(!inElection)
+			{
+				//If we have a leader we need to hear from it every so often
+				if(leaderAlive == false)
+				{
+					//We did not hear from it every so often
+					//Need to trigger a new election
+					System.out.println("[#" + node.getID() + "] Lost my leader");
+					newElection(node, pid);
+				}
+				else
+				{
+					//Yipee yay we did
+					leaderAlive = false;
+				}
+			}
+			
+			Long probeleader = null;
+			if(!inElection && idLeader == node.getID())
+			{
+				//If we have a leader and WE are the leader
+				//we broadcast a probemessage indicating ourselves as the leader
+				probeleader = new Long(node.getID());
+			}
+			
 			Emitter em = (Emitter) node.getProtocol(emitter_id);
-			em.emit(node, new ProbeMessage(node.getID(), Emitter.ALL, "probe", null, protocol_id));
+			em.emit(node, new ProbeMessage(node.getID(), Emitter.ALL, "probe", probeleader, protocol_id, heartbeatSeq));
+			
+			if(!inElection && idLeader == node.getID()) { heartbeatSeq++;}
 			
 			EDSimulator.add(timeout, null, node, pid);
 		}
