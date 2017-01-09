@@ -32,11 +32,13 @@ protocol.positionprotocol.height 500
 protocol.emitter		  		   EmitterImpl
 protocol.emitter.electionprotocol  electionprotocol
 protocol.emitter.latency 		   42
-protocol.emitter.scope             80
+protocol.emitter.scope             42
 protocol.emitter.positionprotocol  positionprotocol
 
 protocol.electionprotocol ElectionProtocolImpl
-protocol.electionprotocol.timeout 5000
+protocol.electionprotocol.timeout 1000
 protocol.electionprotocol.emitter emitter
 protocol.electionprotocol.maxvalue 200
+protocol.electionprotocol.maxbeaconloss 2
+protocol.electionprotocol.beaconinterval 2
 

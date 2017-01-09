@@ -13,11 +13,15 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 	private static final String PAR_EMITTERID = "emitter";
 	private static final String PAR_TIMEOUT = "timeout";
 	private static final String PAR_MAXVALUE = "maxvalue";
+	private static final String PAR_BEACONINTERVAL = "beaconinterval";
+	private static final String PAR_MAXBEACONLOSS = "maxbeaconloss";
 	
 	private final int protocol_id;
 	private final int emitter_id;
 	private final int timeout;
 	private final int maxvalue;
+	private final int maxbeaconloss;
+	private final int beaconinterval;
 	
 	private List<Long> neighbors = new ArrayList<Long>(); 
 	private List<Long> alive     = new ArrayList<Long>();
@@ -27,12 +31,20 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 	
 	private boolean inElection; //a binary variable indicating if is currently in an election or not
 	private boolean ack = false; // a binary variable indicating if has sent ack to parent or not
-	private long idLeader; // leader
-	private int numSeq = 0;
-	private long parent; // parent node in the spanning tree
-	private long compId; // computation-idex id
-	private long compNum; // computation-idex num
-	private int leaderValue; //Maximum downstream value
+	
+	private long 	parent; // parent node in the spanning tree
+	//Computation related variables
+	private long 	compId; // computation-idex id
+	private long 	compNum; // computation-idex num
+	private int     numSeq = 0;
+	//Leader Identity and value variables
+	private int 	leaderValue; //Maximum downstream value
+	private boolean leaderAlive; //Heard from leader recently
+	private long 	idLeader; // leader
+	//Leader Heartbeat related variables
+	private int 	heartbeatSeq = 1;
+	private int		lastHeartbeatSeq = 0;
+	private int 	numberbeaconLoss = 0;
 	
 	public ElectionProtocolImpl(String prefix) {
 		String tmp[] = prefix.split("\\.");
@@ -40,6 +52,8 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 		emitter_id = Configuration.getPid(prefix + "." + PAR_EMITTERID);
 		timeout = Configuration.getInt(prefix + "." + PAR_TIMEOUT);
 		maxvalue = Configuration.getInt(prefix + "." + PAR_MAXVALUE);
+		maxbeaconloss = Configuration.getInt(prefix + "." + PAR_MAXBEACONLOSS);
+		beaconinterval = Configuration.getInt(prefix + "." + PAR_BEACONINTERVAL);
 		
 		myValue = CommonState.r.nextInt(maxvalue);
 		inElection = true;
@@ -48,13 +62,23 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 	}
 
 	public void newElection(Node node, int pid) {
-		//inElection = true;
-
-		Emitter em = (Emitter) node.getProtocol(emitter_id);
-		
 		pending = new ArrayList<Long>();
 		compId = node.getID();
 		compNum = numSeq;
+
+		ack = false;
+		leaderValue = myValue;
+		idLeader = node.getID();	
+			
+		Emitter em = (Emitter) node.getProtocol(emitter_id);
+
+		if (neighbors.isEmpty()) {
+			//If we start an election and we are with no neighbors then we are our own connex graph
+			inElection = false;
+			leaderAlive = true;
+			return;
+		}	
+
 		for(Long n : neighbors)
 		{
 			em.emit(node, new ElectionMessage(node.getID(), n, "election", null, protocol_id, compNum, compId));
@@ -64,10 +88,6 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 		numSeq++;
 		inElection = true;
 		parent = -1;
-
-		ack = false;
-		leaderValue = myValue;
-		idLeader = node.getID();
 	}
 
 	@Override
@@ -83,6 +103,9 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 			ep.parent = -1;
 			ep.leaderValue = ep.myValue;
 			ep.pending = new ArrayList<Long>();
+			ep.lastHeartbeatSeq = 0;
+			ep.heartbeatSeq = 1;
+			ep.numberbeaconLoss = 0;
 			
 		} catch (CloneNotSupportedException e) {
 		} // never happens
@@ -108,6 +131,24 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 			
 			System.out.println("[#" + node.getID() + "]" + msg );
 			
+			//If we get a probemessageFrom leader
+			if(msg.getContent() != null && !inElection && (Long) msg.getContent() == leaderValue)
+			{
+				if(msg.getSeqnum() > lastHeartbeatSeq)
+				{
+					lastHeartbeatSeq = msg.getSeqnum();
+					leaderAlive = true;
+					numberbeaconLoss = 0;
+					
+						Emitter em = (Emitter) node.getProtocol(emitter_id);
+						em.emit(node, new ProbeMessage(node.getID(), Emitter.ALL, "probe", msg.getContent(), protocol_id, msg.getSeqnum()));
+				}
+			}
+			else if(msg.getContent() != null)
+			{
+				return;
+			}
+				
 			if(!getNeighbors().contains(msg.getIdSrc()))
 			{
 				getNeighbors().add(msg.getIdSrc());
@@ -115,8 +156,7 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 			if(!alive.contains(msg.getIdSrc()))
 			{
 				alive.add(msg.getIdSrc());
-			}
-			
+			}	
 		}
 		else if (event instanceof ElectionMessage)
 		{
@@ -141,6 +181,7 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 				ack = false;
 				leaderValue = myValue;
 				idLeader = node.getID();
+				lastHeartbeatSeq = 0;
 			}
 			else 
 			{
@@ -162,6 +203,7 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 					ack = false;
 					leaderValue = myValue;
 					idLeader = node.getID();
+					lastHeartbeatSeq = 0;
 				}
 				else
 				{
@@ -197,6 +239,7 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 			{
 				idLeader = msg.getIdMaxValue();
 				leaderValue = msg.getValue();
+				lastHeartbeatSeq = 0;
 			}
 			
 			pending.remove(msg.getIdSrc());
@@ -213,6 +256,9 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 					
 					//stop participating in an election
 					inElection = false;
+					leaderAlive = true;
+					lastHeartbeatSeq = 0;
+					EDSimulator.add(beaconinterval * 1000, new Integer(0), node, pid);
 				}
 				
 				//else if we are not the tree root
@@ -222,6 +268,7 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 					Emitter em = (Emitter) node.getProtocol(emitter_id);
 					em.emit(node, new AckMessage(node.getID(), parent, "ack", null, protocol_id, leaderValue, idLeader));
 					ack = true;
+					
 				}	
 			}
 		}
@@ -239,15 +286,21 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 				
 				idLeader = msg.getIdLeader();
 				leaderValue = msg.getLeaderValue();
+				lastHeartbeatSeq = 0;
 				
 				Emitter em = (Emitter) node.getProtocol(emitter_id);
 				em.emit(node, new LeaderMessage(node.getID(), Emitter.ALL, "leader", null, protocol_id, leaderValue, idLeader));
 				
 				inElection = false;
+				leaderAlive = true;
+				lastHeartbeatSeq = 0;
+				numberbeaconLoss = 0;
+				EDSimulator.add(beaconinterval * 1000, new Integer(0), node, pid);
 			}
 			else
 			{
 				//TODO q5
+				
 			}
 		}
 		else if (event instanceof Message) {			
@@ -265,6 +318,44 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 		 * ** 	DELTA UPDATE **
 		 * PROBE HEARBEAT
 		 */
+		else if (event instanceof Integer)
+		{
+			if(!inElection)
+			{
+				//If we have a leader we need to hear from it every so often
+				if(leaderAlive == true)
+				{
+					//Yipee yay we did
+					leaderAlive = false;
+					numberbeaconLoss = 0;
+				}
+				else if(numberbeaconLoss < maxbeaconloss)
+				{
+					//We did not hear from it every so often
+					//Need to trigger a new election
+					numberbeaconLoss++;
+					System.out.println("[#" + node.getID() + "] Lost my leader " + numberbeaconLoss + " times");	
+				}
+				else
+				{
+					System.out.println("[#" + node.getID() + "] Lost my leader");
+					newElection(node, pid);
+				}
+					
+			if(idLeader == node.getID())
+			{
+				Long probeleader = null;
+				//If we have a leader and WE are the leader
+				//we broadcast a probemessage indicating ourselves as the leader
+				probeleader = new Long(node.getID());
+			
+			
+			Emitter em = (Emitter) node.getProtocol(emitter_id);
+			em.emit(node, new ProbeMessage(node.getID(), Emitter.ALL, "probe", probeleader, protocol_id, heartbeatSeq));
+			}
+				EDSimulator.add(beaconinterval * 1000, new Integer(0), node, pid);
+			}
+		}
 		else if(event == null)
 		{
 			ListIterator<Long>  it = getNeighbors().listIterator(); 
@@ -278,16 +369,18 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 					// We don't expect ack from this node anymore
 					pending.remove(id);
 					
-					if(id == parent)
+					if(inElection && id == parent)
 					{
 						parent = -1;
 					}
 				}
 			}
 			alive.clear();
-			
+				
 			Emitter em = (Emitter) node.getProtocol(emitter_id);
-			em.emit(node, new ProbeMessage(node.getID(), Emitter.ALL, "probe", null, protocol_id));
+			em.emit(node, new ProbeMessage(node.getID(), Emitter.ALL, "probe", null, protocol_id, heartbeatSeq));
+			
+			if(!inElection && idLeader == node.getID()) { heartbeatSeq++;}
 			
 			EDSimulator.add(timeout, null, node, pid);
 		}
