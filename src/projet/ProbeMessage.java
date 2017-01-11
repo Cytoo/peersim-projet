@@ -23,7 +23,7 @@ public class ProbeMessage extends Message {
 	public String toString()
 	{
 		return "ProbeMessage [#" + getIdSrc() + "] -> [#"+ (getIdDest() == -2 ? "ALL" : getIdSrc()) + "] " + 
-					((getContent() != null) ? "From leader {" + (Long) getContent() + "} with seqnum °" + seqnum +"."
+					((getContent() != null) ? "From leader {" + (Long) getContent() + "} with seqnum °" + seqnum + "."
 									: "");
 	}
 }

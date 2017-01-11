@@ -89,9 +89,11 @@ public class Monitor extends JPanel implements Control {
 	    	PositionProtocol pos = (PositionProtocol) n.getProtocol(position_pid);
 	    	pos.processEvent(n, position_pid, null);
 	    
-	    	//Initiate the first probe message
+	    	//Initiate the first election message
 	    	ElectionProtocolImpl el = (ElectionProtocolImpl) n.getProtocol(election_pid);
 	    	el.processEvent(n, election_pid, null);
+	    	el.processEvent(n, election_pid, new Integer(0));
+	    	//TODO REMOVE
 	    	EDSimulator.add(5043,new ElectionMessage(i, i, "election", new Integer(0), election_pid, 0, 0), n, election_pid);
 	    }
 

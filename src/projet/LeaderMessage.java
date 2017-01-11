@@ -29,7 +29,7 @@ public class LeaderMessage extends Message {
 	
 	public String toString()
 	{
-		return "Leader [#" + getIdSrc() + "] -> [#"+ (getIdDest() == -2 ? "ALL" : getIdSrc()) + "] with value {" + leaderValue + "} on [#" + idLeader + "]";
+		return "Leader [#" + getIdSrc() + "] -> [#"+ (getIdDest() == -2 ? "ALL" : getIdDest()) + "] with value {" + leaderValue + "} on [#" + idLeader + "]";
 	}
 
 }
