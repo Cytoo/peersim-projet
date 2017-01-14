@@ -18,15 +18,17 @@
 %	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
 %----------------------------------------------------------------------------------------
 
-\documentclass[paper=a4, fontsize=11pt]{report} % A4 paper and 11pt font size
+\documentclass[paper=a4, fontsize=11pt]{article} % A4 paper and 11pt font size
 \usepackage[margin=0.7in]{geometry}
 \usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
 %\usepackage{fourier} % Use the Adobe Utopia font for the document - comment this line to return to the LaTeX default
 \usepackage[francais]{babel} % English language/hyphenation
 \usepackage[utf8]{inputenc}
 \usepackage[babel=true]{csquotes} 
-\usepackage{amsmath,amsfonts,amsthm} % Math packages
-
+%\usepackage{amsmath,amsfonts,amsthm}
+%\usepackage{algorithmicx} % Math packages
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
 \usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
 
 
@@ -52,17 +54,21 @@
 
 \maketitle % Print the title
 
+\pagenumbering{arabic}
+\newpage
+
 %----------------------------------------------------------------------------------------
-%	PROBLEM 1
+%	EXERCICE 1
 %----------------------------------------------------------------------------------------
 
 \section{Exercice 1}
 
-\subsection{q1}
+\subsection{Question 1}
 
-L'article traite des problèmes d'élection de leader au sein d'un système mobile ad hoc. En utilisant l'algorithme d'arbres couvrants de Dijkstra et Scholten dans les réseaux statiques et en l'adaptant aux problématiques des réseaux mobiles ad hoc, dans lequel l'état des composantes connexes n'est pas assuré dans le temps, les auteurs fournissent un algorithme permettant d'assurer à terme un leader unique par composante connexe. Le taux d'élection est supérieur à 95 pourcent en fonction de l'algorithme de transport.
+L'article traite des problèmes d'élection de leader au sein d'un système mobile ad hoc. En utilisant l'algorithme d'arbres couvrants de Dijkstra et Scholten dans les réseaux statiques et en l'adaptant aux problématiques des réseaux mobiles ad hoc, dans lequel l'état des composantes connexes n'est pas assuré dans le temps, les auteurs fournissent un algorithme permettant d'assurer à terme un leader unique par composante connexe.
+Le taux d'élection est supérieur à 95\% en fonction de l'algorithme de transport.
 
-\subsection{q2}
+\subsection{Question 2}
 
 L'algorithme fait les hypothèses suivantes sur le système :
 
@@ -80,7 +86,7 @@ Les buffers de réception sont infiniment larges de manière à ce que il n'y ai
 
 Les communications s'effectuent par échange de messages point-à-point de manière asynchrone.
 
-\subsection{q3}
+\subsection{Question 3}
 
 Les élections concurrentes au sein d'une même composante connexe sont gérées grâce au couple de valeurs <num, id> selon la règle suivante :
 Soient <num1, id1> et <num2, id2> deux indexes de noeuds concurrents. le noeud possédant le num le plus grand l'emporte.
@@ -89,19 +95,48 @@ Si num1 = num2, le noeud qui a le plus grand identifiant l'emporte.
 C'est le consensus : tous les noeuds s'accordent sur un noeud qui lancera l'élection (qui sera la racine de l'arbre).
 
 
-\subsection{q4}
+\subsection{Question 4}
 
 \textbf{Processus i :}
+\newline
+Variables locales : 
+\newline
+$ N_{i} $ : tableau de voisins 
+\newline
+$ S_{i} $ : tableau de voisins dont on attend encore un message ack (NULL au debut)
+\newline
+$ parent_{i} $ : père du noeud
+\newline
 
-Variables locales :
-\[N_{i}\] : tableau de voisins
-\[S_{i}\] : tableau de voisins dont on attend encore un message ack (NULL au debut)
-parent // initialisé à null
 
-Leader\_election() {\\
-\vspace{1cm}f i == source\\
-\vspace{2cm}send <election, i> to Ni	
-}
+
+\begin{algorithm}
+   \caption{Leader\_election()}
+    \begin{algorithmic}[1]
+      \Function{leader\_election}{}\Comment{}
+		\If {$i == source$}
+			\State $ send <election, i> to  N_{i}$
+		\EndIf
+       \EndFunction
+
+      \Function{upon reception}{<election, j>}\Comment{}
+		\If {$parent == null $}
+			\State $parent \gets j$
+			\State $ S_{i} \gets N_{i} \setminus parent $
+			\State $ send <election, i> to  S_{i}$
+
+			\While {$ S_{i} notEmpty $} 
+				\State  wait until receive <ack ,s>
+				\State  upon reception <ack, s> 
+				\State $ S_{i} \gets S_{i}\setminus s $ 
+			\EndWhile
+
+		\EndIf
+		\State  send <ack, i> to parent 
+       \EndFunction
+\end{algorithmic}
+\end{algorithm}
+
 
 upon reception <election, j>
 	if parent == null
@@ -128,10 +163,10 @@ Chaque noeud envoie un message Election à tous ses voisins sauf son parent et a
 Le noeud source "broadcast" la valeur du leader.
 
  
-\subsection{q5}
+\subsection{Question 5}
 C'est le système de heartbeat avec temporisation : si on ne reçoit pas de message "je suis en vie" d'un noeud depuis un certain temps borné, on considère qu'il est en panne. 
 
-\subsection{q6}
+\subsection{Question 6}
 
 Le modèle de mobilité Random Waypoint est utilisé pour simuler les changements de position, vitesse, et accéleration en fonction du temps. Ce modèle est fortement utilisé
 pour étudier les comportements des noeuds au sein des MANET. Chaque noeud est d'abord immobile pendant un nombre fixé de secondes, puis choisit une destination aléatoire, ainsi qu'une vitesse aléatoire choisie entre une borne
@@ -141,23 +176,23 @@ la fin de la simulation.
 \section{Exercice 2}
 Dans cette section, nous allons expliquer nos choix d'implémentation des algorithmes de l'exerccice 2.
 
-\subsection{q1}
+\subsection{Question 1}
 Classe RandomWayPointProtocol.java \\
 Chaque noeud va tirer aléatoirement sa position x et y de départ et de destination. 
 Dans la fonction processEvent TODOOOOOOOOOOOOOOOOOOOOO
 
-\subsection{q2}
+\subsection{Question 2}
 Classe EmitterImpl.java\\
 La méthode d'émission envoie un message à chaque noeud qui fait partie de ses voisins, c'est-à-dire qui est à une distance inférieure à scope.
 
-\subsection{q3}
+\subsection{Question 3}
 Classe ElectionProtocolImpl.java \\
 Pour implémenter les messages Probe, nous avons décidé d'utiliser une liste supplémentaire pour stocker les noeuds en vie : ceux dont on a reçu un message Probe depuis le dernier delta. On vide cette liste tous les delta temps.
 A chaque timer delta, on va faire la différence entre la liste de voisins et la liste des noeuds en vie. Si un noeud n'est pas dans la liste des noeuds en vie, cela signifie qu'on n'a pas reçu de message Probe depuis delta temps au moins, donc il n'est plus considéré comme un voisin.
 On ajoute ensuite dans la file d'événements un événement différent des messages pour se \enquote{réveiller} au bout de delta temps.
 
 
-\subsection{q4}
+\subsection{Question 4}
 Chaque noeud tire sa valeur de décision aléatoirement. Pour cela nous avons défini une valeur maximum dans le fichier de configuration.\\
 Un noeud qui n'a pas de leader lance une élection.
 
