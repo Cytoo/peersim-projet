@@ -18,33 +18,17 @@
 %	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
 %----------------------------------------------------------------------------------------
 
-\documentclass[paper=a4, fontsize=11pt]{scrartcl} % A4 paper and 11pt font size
-
+\documentclass[paper=a4, fontsize=11pt]{report} % A4 paper and 11pt font size
+\usepackage[margin=0.7in]{geometry}
 \usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
-\usepackage{fourier} % Use the Adobe Utopia font for the document - comment this line to return to the LaTeX default
-\usepackage[english]{babel} % English language/hyphenation
+%\usepackage{fourier} % Use the Adobe Utopia font for the document - comment this line to return to the LaTeX default
+\usepackage[francais]{babel} % English language/hyphenation
+\usepackage[utf8]{inputenc}
+\usepackage[babel=true]{csquotes} 
 \usepackage{amsmath,amsfonts,amsthm} % Math packages
 
 \usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
 
-\usepackage{sectsty} % Allows customizing section commands
-\allsectionsfont{\centering \normalfont\scshape} % Make all sections centered, the default font and small caps
-
-\usepackage{fancyhdr} % Custom headers and footers
-\pagestyle{fancyplain} % Makes all pages in the document conform to the custom headers and footers
-\fancyhead{} % No page header - if you want one, create it in the same way as the footers below
-\fancyfoot[L]{} % Empty left footer
-\fancyfoot[C]{} % Empty center footer
-\fancyfoot[R]{\thepage} % Page numbering for right footer
-\renewcommand{\headrulewidth}{0pt} % Remove header underlines
-\renewcommand{\footrulewidth}{0pt} % Remove footer underlines
-\setlength{\headheight}{13.6pt} % Customize the height of the header
-
-\numberwithin{equation}{section} % Number equations within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
-\numberwithin{figure}{section} % Number figures within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
-\numberwithin{table}{section} % Number tables within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
-
-\setlength\parindent{0pt} % Removes all indentation from paragraphs - comment this line for an assignment with lots of text
 
 %----------------------------------------------------------------------------------------
 %	TITLE SECTION
@@ -107,16 +91,16 @@ C'est le consensus : tous les noeuds s'accordent sur un noeud qui lancera l'éle
 
 \subsection{q4}
 
-Processus i :
+\textbf{Processus i :}
 
 Variables locales :
-Ni // tableau de voisins
-Si  // tableau de voisins dont on attend encore un message ack (NULL au debut)
+\[N_{i}\] : tableau de voisins
+\[S_{i}\] : tableau de voisins dont on attend encore un message ack (NULL au debut)
 parent // initialisé à null
 
-Leader\_election() {
-	if i == source
-		send <election, i> to Ni	
+Leader\_election() {\\
+\vspace{1cm}f i == source\\
+\vspace{2cm}send <election, i> to Ni	
 }
 
 upon reception <election, j>
@@ -154,73 +138,58 @@ pour étudier les comportements des noeuds au sein des MANET. Chaque noeud est d
 minimum et maximum. Le noeud se déplace alors jusqu'à sa destination puis effectue une pause avant de choisir une nouvelle destination et une nouvelle vitesse de manière aléatoire. Ce comportement est observé par tous les noeuds jusqu'à 
 la fin de la simulation.
 
-\lipsum[2] % Dummy text
+\section{Exercice 2}
+Dans cette section, nous allons expliquer nos choix d'implémentation des algorithmes de l'exerccice 2.
 
-\begin{align} 
-\begin{split}
-(x+y)^3 	&= (x+y)^2(x+y)\\
-&=(x^2+2xy+y^2)(x+y)\\
-&=(x^3+2x^2y+xy^2) + (x^2y+2xy^2+y^3)\\
-&=x^3+3x^2y+3xy^2+y^3
-\end{split}					
-\end{align}
+\subsection{q1}
+Classe RandomWayPointProtocol.java \\
+Chaque noeud va tirer aléatoirement sa position x et y de départ et de destination. 
+Dans la fonction processEvent TODOOOOOOOOOOOOOOOOOOOOO
 
-Phasellus viverra nulla ut metus varius laoreet. Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies
+\subsection{q2}
+Classe EmitterImpl.java\\
+La méthode d'émission envoie un message à chaque noeud qui fait partie de ses voisins, c'est-à-dire qui est à une distance inférieure à scope.
 
-%------------------------------------------------
+\subsection{q3}
+Classe ElectionProtocolImpl.java \\
+Pour implémenter les messages Probe, nous avons décidé d'utiliser une liste supplémentaire pour stocker les noeuds en vie : ceux dont on a reçu un message Probe depuis le dernier delta. On vide cette liste tous les delta temps.
+A chaque timer delta, on va faire la différence entre la liste de voisins et la liste des noeuds en vie. Si un noeud n'est pas dans la liste des noeuds en vie, cela signifie qu'on n'a pas reçu de message Probe depuis delta temps au moins, donc il n'est plus considéré comme un voisin.
+On ajoute ensuite dans la file d'événements un événement différent des messages pour se \enquote{réveiller} au bout de delta temps.
 
-\subsection{Heading on level 2 (subsection)}
 
-Lorem ipsum dolor sit amet, consectetuer adipiscing elit. 
-\begin{align}
-A = 
-\begin{bmatrix}
-A_{11} & A_{21} \\
-A_{21} & A_{22}
-\end{bmatrix}
-\end{align}
-Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.
+\subsection{q4}
+Chaque noeud tire sa valeur de décision aléatoirement. Pour cela nous avons défini une valeur maximum dans le fichier de configuration.\\
+Un noeud qui n'a pas de leader lance une élection.
 
-%------------------------------------------------
+Lorsqu'on reçoit un message élection d'un noeud qui n'est pas notre parent, cela signifie qu'une élection à laquelle on fait partie a déjà commencé : on renvoie donc un ack à ce noeud.
+Nous avons donc besoin de différencier un ack d'un noeud "cousin" d'un ack d'un noeud "enfant", lorsqu'on remonte l'arbre à partir des feuilles.
+Ici nous avons choisi de renvoyer la valeur de décision -1 lorsque l'ack vient d'un noeud qui n'est pas notre enfant. 
 
-\subsubsection{Heading on level 3 (subsubsection)}
+Problème : si un noeud sort de notre réseau alors qu'on lui a envoyé un message élection, on va attendre son ack indéfiniment. 
+Pour résoudre ce problème, lors du traitement de l'événement "delta", lorsqu'un noeud sort de nos voisins on le supprime également de la liste des noeuds dont on attend un ack.
 
-\lipsum[3] % Dummy text
+Pour la gestion de quand on perd son parent : à chaque Ack émis on envoie aussi sa value. Donc chaque noeud qui reçoit un Ack qu'il attend doit comparer la valeur maximale appelée leaderValue à la valeur reçue, ainsi qu'à sa valeur, pour ne garder que la plus grande (c'est celle qui déterminera qui est le leader). On garde également l'id du noeud qui a remporté cette comparaison de valeur.
 
-\paragraph{Heading on level 4 (paragraph)}
+Un noeud qui a reçu tous les Ack qu'il attendait et qui n'a pas de parent est le noeud qui a initialisé l'élection : c'est lui qui doit diffuser le message leader à tout le monde. Pour cela on considère que si la variable parent est à -1, cela signifie qu'on n'a pas de parent.
 
-\lipsum[6] % Dummy text
+Réception du message Leader :
+Si on est en élection, on met à jour notre idLeader, on diffuse le message leader à tous les noeuds de notre portée. On n'est plus en éléction, on a fini notre algo.
+Dans cette partie de l'algo il faut faire attention à ce qu'on reçoive le message leader au moment où on attend un, d'où la variable ack qui est mise à jour lorsqu'on envoie un ack à notre parent.
 
-%----------------------------------------------------------------------------------------
-%	PROBLEM 2
-%----------------------------------------------------------------------------------------
 
-\section{Lists}
+Lancement de l'algo : newElection()
+Dans le monitor, on envoie un message élection particulier avec un objet dans le "content". A la reception de ce message dans le processEvent, chaque noeud va commencer une nouvelle élection.
+\subsection{q5}
 
-%------------------------------------------------
+Pour gérer la détection de la perte du leader, comme on attend un Probe message de tous nos voisins, on regarde si ce Probe message vient du leader (c'est-à-dire du noeud qui a gagné l'election, comme expliqué précedemment).
+Dans ce cas on fait suivre ce message.
+Dans le cas où on ne reçoit pas ce message \enquote{probe leader} du leader, cela signifie qu'on l'a perdu et il faut relancer une élection.
+Ce message est différencié des autres car on envoie une valeur Long dans l'object, alors que pour les autres cette valeur sera à null.
+Ce message est propagé dans tout le réseau, donc pour éviter qu'il boucle indéfiniment dans le réseau et fausse la détection de la perte du leader, on a ajouté un numéro de séquence lié au message.
+A chaque nouveau delta, on incrémente ce numéro de séquence : seqNum dans la classe ProbeMessage
+Lorsqu'on reçoit ce message, si le numéro de séquence est plus grand que celui qu'on avait (initialement 0), c'est un nouveau heartbeat du leader, on le prend en compte.
+Sinon, c'est un message qu'on a déjà reçu, on l'ignore. Réciproquement, le leader qui envoie son heartbeat incrémente ce compteur à chaque delta.
 
-\subsection{Example of list (3*itemize)}
-\begin{itemize}
-	\item First item in a list 
-		\begin{itemize}
-		\item First item in a list 
-			\begin{itemize}
-			\item First item in a list 
-			\item Second item in a list 
-			\end{itemize}
-		\item Second item in a list 
-		\end{itemize}
-	\item Second item in a list 
-\end{itemize}
-
-%------------------------------------------------
-
-\subsection{Example of list (enumerate)}
-\begin{enumerate}
-\item First item in a list 
-\item Second item in a list 
-\item Third item in a list
-\end{enumerate}
 
 %----------------------------------------------------------------------------------------
 
