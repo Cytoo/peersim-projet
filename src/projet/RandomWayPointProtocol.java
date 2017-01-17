@@ -22,10 +22,10 @@ public class RandomWayPointProtocol implements PositionProtocol {
 	private final int protocol_id;
 	
 	private double speed;
-	private int destinx;
-	private int destiny;
-	private int posx;
-	private int posy;
+	private double destinx;
+	private double destiny;
+	private double posx;
+	private double posy;
 
 	
 	public RandomWayPointProtocol(String prefix)

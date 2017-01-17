@@ -9,7 +9,7 @@ import peersim.core.CommonState;
 import peersim.core.Node;
 import peersim.edsim.EDSimulator;
 
-public class ElectionProtocolImpl implements ElectionProtocol {
+public class ElectionProtocolImpl implements ElectionProtocol, MetricsProtocol {
 	private static final String PAR_EMITTERID = "emitter";
 	private static final String PAR_TIMEOUT = "timeout";
 	private static final String PAR_MAXVALUE = "maxvalue";
@@ -50,6 +50,17 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 										// leader
 	private int numberbeaconLoss = 0; // Number of time we lost the beacon
 	private LeaderMessage leaderBuffer = null; // Buffer of leadermessage
+	
+	
+	/*
+	 *	Metrics variables 
+	 * 
+	 * 	 */
+	private  int timeNoLeader;			//Total time spent in election
+	private  int numberOfElections;		//Number of elections
+	private	 int numberOfMessages;		//number of messages sent
+	private  int timeStart;				//time at which we start logging statistics
+	private  int timeBeginElection;		//time of last election start
 
 	public ElectionProtocolImpl(String prefix) {
 		String tmp[] = prefix.split("\\.");
@@ -62,6 +73,8 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 
 		myValue = CommonState.r.nextInt(maxvalue);
 		inElection = true;
+		timeBeginElection = CommonState.getIntTime();
+		
 		parent = -1;
 		leaderValue = myValue;
 	}
@@ -87,10 +100,15 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 
 		for (Long n : neighbors) {
 			em.emit(node, new ElectionMessage(node.getID(), n, "election", null, protocol_id, compNum, compId));
+			numberOfMessages++;
+			
 			pending.add(n);
 		}
 		numSeq++;
 		inElection = true;
+		timeBeginElection = CommonState.getIntTime();
+		numberOfElections++;
+		
 		parent = -1;
 	}
 
@@ -104,6 +122,8 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 			ep.myValue = CommonState.r.nextInt(maxvalue);
 			ep.numSeq = 0;
 			ep.inElection = true;
+			ep.timeBeginElection = CommonState.getIntTime();
+			
 			ep.parent = -1;
 			ep.leaderValue = ep.myValue;
 			ep.pending = new ArrayList<Long>();
@@ -141,6 +161,7 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 				Emitter em = (Emitter) node.getProtocol(emitter_id);
 				em.emit(node, new LeaderMessage(node.getID(), msg.getIdSrc(), "leader", null, protocol_id, leaderValue,
 						idLeader));
+				numberOfMessages++;
 			}
 
 		}
@@ -160,6 +181,9 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 		// If we have a leader
 		if (!inElection) {
 			inElection = true;
+			timeBeginElection = CommonState.getIntTime();
+			numberOfElections++;
+			
 			compId = msg.getCompId();
 			compNum = msg.getCompNum();
 			parent = msg.getIdSrc();
@@ -175,10 +199,14 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 			if (msg.getCompNum() == compNum && msg.getCompId() == compId) {
 				Emitter em = (Emitter) node.getProtocol(emitter_id);
 				em.emit(node, new AckMessage(node.getID(), msg.getIdSrc(), "ack", null, protocol_id, -1, node.getID()));
+				numberOfMessages++;
 				return;
 			}
 			// Compare computation-index
 			if ((msg.getCompNum() > compNum) || ((msg.getCompNum() == compNum) && (msg.getCompId() > compId))) {
+				numberOfElections++;
+				
+				
 				compNum = msg.getCompNum();
 				compId = msg.getCompId();
 				parent = msg.getIdSrc();
@@ -198,6 +226,8 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 			if (n != parent) {
 				Emitter em = (Emitter) node.getProtocol(emitter_id);
 				em.emit(node, new ElectionMessage(node.getID(), n, "election", null, protocol_id, compNum, compId));
+				numberOfMessages++;
+				
 				pending.add(n);
 				System.out.println("[#" + node.getID() + "] Added node " + n + " to pending, size:" + pending.size());
 			}
@@ -205,6 +235,7 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 		if (pending.isEmpty()) {
 			Emitter em = (Emitter) node.getProtocol(emitter_id);
 			em.emit(node, new AckMessage(node.getID(), parent, "ack", null, protocol_id, myValue, node.getID()));
+			numberOfMessages++;
 			ack = true;
 		}
 
@@ -238,8 +269,11 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 			Emitter em = (Emitter) node.getProtocol(emitter_id);
 			em.emit(node,
 					new LeaderMessage(node.getID(), Emitter.ALL, "leader", null, protocol_id, leaderValue, idLeader));
+			numberOfMessages++;
 
 			inElection = false;
+			timeNoLeader += CommonState.getIntTime() - timeBeginElection;
+			
 			leaderAlive = true;
 			lastHeartbeatSeq = 0;
 			numberbeaconLoss = 0;
@@ -255,6 +289,7 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 				Emitter em = (Emitter) node.getProtocol(emitter_id);
 				em.emit(node, new LeaderMessage(node.getID(), Emitter.ALL, "leader", null, protocol_id, leaderValue,
 						idLeader));
+				numberOfMessages++;
 			}
 		}
 	}
@@ -349,9 +384,11 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 			Emitter em = (Emitter) node.getProtocol(emitter_id);
 			em.emit(node, new LeaderMessage(node.getID(), Emitter.ALL, "leader", null, protocol_id, leaderValue,
 					idLeader));
+			numberOfMessages++;
 
 			// stop participating in an election
 			inElection = false;
+			timeNoLeader += CommonState.getIntTime() - timeBeginElection;
 			leaderAlive = true;
 			lastHeartbeatSeq = 0;
 		}
@@ -361,6 +398,7 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 			// forward ack to parent with maxdownstreamvalue
 			Emitter em = (Emitter) node.getProtocol(emitter_id);
 			em.emit(node, new AckMessage(node.getID(), parent, "ack", null, protocol_id, leaderValue, idLeader));
+			numberOfMessages++;
 			ack = true;
 
 		}
@@ -431,6 +469,36 @@ public class ElectionProtocolImpl implements ElectionProtocol {
 	@Override
 	public List<Long> getNeighbors() {
 		return neighbors;
+	}
+
+	@Override
+	public void reset() {
+			numberOfMessages  = 0;
+			numberOfElections = 0;
+			timeBeginElection = CommonState.getIntTime();
+			timeStart		  = CommonState.getIntTime();
+			timeNoLeader      = 0;
+			
+	}
+
+	@Override
+	public double fractionWithoutLeader() {
+		return (timeNoLeader / (double) (CommonState.getIntTime() - timeStart));
+	}
+
+	@Override
+	public double meanElectionRate() {
+		return ((double) (numberOfElections * 60000) / (double) (CommonState.getIntTime() - timeStart));
+	}
+
+	@Override
+	public double meanElectionTime() {
+		return ((timeNoLeader / (double) numberOfElections));
+	}
+
+	@Override
+	public double meanMessageOverhead() {
+		return (numberOfMessages / (double) numberOfElections);
 	}
 
 }

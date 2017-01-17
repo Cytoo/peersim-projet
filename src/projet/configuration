@@ -1,44 +1,43 @@
-simulation.experiments 1
+simulation.experiments 						1
 
-random.seed 7
-network.size 100
-
-
-simulation.endtime 1000000
-
-#init.appinit Monitor
-#init.appinit.electionprotocol electionprotocol
-#init.appinit.positionprotocol positionprotocol
-#init.appinit.emitter emitter
-#init.appinit.time_slow 1000
-
-control.monitor Monitor
-control.monitor.from 0
-#control.monitor.until 20000
-control.monitor.step 1000
-control.monitor.electionprotocol electionprotocol
-control.monitor.positionprotocol positionprotocol
-control.monitor.emitter emitter
-control.monitor.time_slow 1000
+random.seed 								7
+network.size 								5
 
 
-protocol.positionprotocol RandomWayPointProtocol
-protocol.positionprotocol.vmin 1
-protocol.positionprotocol.vmax 5
-protocol.positionprotocol.pausetime 1
-protocol.positionprotocol.width 1000
-protocol.positionprotocol.height 1000
+simulation.endtime 							1000000
 
-protocol.emitter		  		   EmitterImpl
-protocol.emitter.electionprotocol  electionprotocol
-protocol.emitter.latency 		   42
-protocol.emitter.scope             42
-protocol.emitter.positionprotocol  positionprotocol
 
-protocol.electionprotocol ElectionProtocolImpl
-protocol.electionprotocol.timeout 1000
-protocol.electionprotocol.emitter emitter
-protocol.electionprotocol.maxvalue 200
-protocol.electionprotocol.maxbeaconloss 2
-protocol.electionprotocol.beaconinterval 5
+control.monitor 							Monitor
+control.monitor.from 						0
+control.monitor.step 						1000
+control.monitor.electionprotocol 			electionprotocol
+control.monitor.positionprotocol 			positionprotocol
+control.monitor.emitter 					emitter
+control.monitor.time_slow 					50
 
+control.metrics								MetricsController
+control.metrics.from						10000
+control.metrics.step						980000 
+control.metrics.metricsprotocol				electionprotocol
+
+protocol.positionprotocol                	RandomWayPointProtocol
+protocol.positionprotocol.vmin           	1
+protocol.positionprotocol.vmax           	3
+protocol.positionprotocol.pausetime      	1
+protocol.positionprotocol.width          	500
+protocol.positionprotocol.height         	500
+
+protocol.emitter		  		   			EmitterImpl
+protocol.emitter.electionprotocol  			electionprotocol
+protocol.emitter.latency 		   			4000
+protocol.emitter.scope             			100
+protocol.emitter.positionprotocol  			positionprotocol
+
+protocol.electionprotocol 					ElectionProtocolImpl
+protocol.electionprotocol.timeout 			1000
+protocol.electionprotocol.emitter 			emitter
+protocol.electionprotocol.maxvalue 			200
+protocol.electionprotocol.maxbeaconloss 	2
+protocol.electionprotocol.beaconinterval 	5
+
+	
