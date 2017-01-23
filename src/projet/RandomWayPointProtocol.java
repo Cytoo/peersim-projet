@@ -72,7 +72,7 @@ public class RandomWayPointProtocol implements PositionProtocol {
 			
 			//on est arrivé
 			chooseNewDestination();
-			EDSimulator.add(pause * 1000, null, node, pid);
+			EDSimulator.add(pause, null, node, pid);
 		}
 		else
 		{

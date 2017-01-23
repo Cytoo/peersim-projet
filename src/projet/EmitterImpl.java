@@ -47,8 +47,10 @@ public class EmitterImpl implements Emitter {
 				double distance = Math.sqrt((posNode.getX() - posHost.getX()) * ((posNode.getX() - posHost.getX())) 
 											+(posNode.getY() - posHost.getY()) * ((posNode.getY() - posHost.getY())));
 				
-				if (distance < this.scope)
+				if (distance < this.scope) {
 					EDSimulator.add(this.getLatency(), msg, Network.get(i), election_protocol_id);
+				}
+					
 			}
 		}
 	}

@@ -87,7 +87,7 @@ public class ElectionProtocolImpl implements ElectionProtocol, MetricsProtocol {
 		ack = false;
 		leaderValue = myValue;
 		idLeader = node.getID();
-
+		numberOfElections++;
 		Emitter em = (Emitter) node.getProtocol(emitter_id);
 
 		if (neighbors.isEmpty()) {
@@ -107,7 +107,7 @@ public class ElectionProtocolImpl implements ElectionProtocol, MetricsProtocol {
 		numSeq++;
 		inElection = true;
 		timeBeginElection = CommonState.getIntTime();
-		numberOfElections++;
+		
 		
 		parent = -1;
 	}
@@ -177,7 +177,6 @@ public class ElectionProtocolImpl implements ElectionProtocol, MetricsProtocol {
 			return;
 		}
 
-		System.out.println("[#" + node.getID() + "] " + msg);
 		// If we have a leader
 		if (!inElection) {
 			inElection = true;
@@ -229,7 +228,6 @@ public class ElectionProtocolImpl implements ElectionProtocol, MetricsProtocol {
 				numberOfMessages++;
 				
 				pending.add(n);
-				System.out.println("[#" + node.getID() + "] Added node " + n + " to pending, size:" + pending.size());
 			}
 		}
 		if (pending.isEmpty()) {
@@ -242,8 +240,6 @@ public class ElectionProtocolImpl implements ElectionProtocol, MetricsProtocol {
 	}
 
 	private void processLeader(Node node, int pid, LeaderMessage msg) {
-
-		System.out.println("[#" + node.getID() + "] " + msg);
 
 		if (msg.getIdSrc() == node.getID()) {
 			return;
@@ -336,9 +332,7 @@ public class ElectionProtocolImpl implements ElectionProtocol, MetricsProtocol {
 					// We did not hear from it every so often
 					// Need to trigger a new election
 					numberbeaconLoss++;
-					System.out.println("[#" + node.getID() + "] Lost my leader " + numberbeaconLoss + " times");
 				} else {
-					System.out.println("[#" + node.getID() + "] Lost my leader");
 					newElection(node, pid);
 				}
 			}
@@ -362,7 +356,6 @@ public class ElectionProtocolImpl implements ElectionProtocol, MetricsProtocol {
 	}
 
 	private void processAck(Node node, int pid, AckMessage msg) {
-		System.out.println("[#" + node.getID() + "] " + msg);
 		if (msg.getValue() > leaderValue) {
 			idLeader = msg.getIdMaxValue();
 			leaderValue = msg.getValue();
@@ -418,7 +411,6 @@ public class ElectionProtocolImpl implements ElectionProtocol, MetricsProtocol {
 
 		if (event instanceof ProbeMessage) {
 			ProbeMessage msg = (ProbeMessage) event;
-			// System.out.println("[#" + node.getID() + "]" + msg);
 
 			processProbe(node, pid, (ProbeMessage) event);
 		} else if (event instanceof ElectionMessage) {
@@ -430,15 +422,7 @@ public class ElectionProtocolImpl implements ElectionProtocol, MetricsProtocol {
 
 		else if (event instanceof LeaderMessage) {
 			processLeader(node, pid, (LeaderMessage) event);
-		} else if (event instanceof Message) {
-			Message msg = (Message) event;
-
-			// If node is the receiver OR it is a broadcast
-			if (msg.getIdDest() == node.getID() || msg.getIdDest() == Emitter.ALL) {
-				// Then the message is delivered to the application
-				// TODO
-			}
-		}
+		} 
 
 		/*********
 		 * ** ** DELTA UPDATE ** PROBE HEARBEAT
@@ -493,12 +477,15 @@ public class ElectionProtocolImpl implements ElectionProtocol, MetricsProtocol {
 
 	@Override
 	public double meanElectionTime() {
+		System.out.println("timeNoLeader / numberOfElections : " + timeNoLeader + "/" + (double) numberOfElections);
 		return ((timeNoLeader / (double) numberOfElections));
 	}
 
 	@Override
 	public double meanMessageOverhead() {
+		System.out.println("numberOfMessages / numberOfElections : " + numberOfMessages + "/" + (double) numberOfElections);
 		return (numberOfMessages / (double) numberOfElections);
 	}
+
 
 }

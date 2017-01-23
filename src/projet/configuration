@@ -1,36 +1,41 @@
 simulation.experiments 						1
 
 random.seed 								7
-network.size 								5
+network.size 								20
 
 
-simulation.endtime 							1000000
+simulation.endtime 							7200000
 
 
 control.monitor 							Monitor
 control.monitor.from 						0
-control.monitor.step 						1000
+control.monitor.step 						20000
 control.monitor.electionprotocol 			electionprotocol
 control.monitor.positionprotocol 			positionprotocol
 control.monitor.emitter 					emitter
 control.monitor.time_slow 					50
 
 control.metrics								MetricsController
-control.metrics.from						10000
-control.metrics.step						980000 
+control.metrics.from						0
+control.metrics.step						7199990
 control.metrics.metricsprotocol				electionprotocol
+
+control.nbleader							NbLeaderController
+control.nbleader.from						0
+control.nbleader.step						100
+control.nbleader.electionprotocol			electionprotocol
 
 protocol.positionprotocol                	RandomWayPointProtocol
 protocol.positionprotocol.vmin           	1
 protocol.positionprotocol.vmax           	3
-protocol.positionprotocol.pausetime      	1
-protocol.positionprotocol.width          	500
-protocol.positionprotocol.height         	500
+protocol.positionprotocol.pausetime      	10000
+protocol.positionprotocol.width          	2000
+protocol.positionprotocol.height         	2000
 
 protocol.emitter		  		   			EmitterImpl
 protocol.emitter.electionprotocol  			electionprotocol
-protocol.emitter.latency 		   			4000
-protocol.emitter.scope             			100
+protocol.emitter.latency 		   			200
+protocol.emitter.scope             			200
 protocol.emitter.positionprotocol  			positionprotocol
 
 protocol.electionprotocol 					ElectionProtocolImpl
