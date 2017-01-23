@@ -251,7 +251,26 @@ A chaque nouveau delta, on incrémente ce numéro de séquence : seqNum dans la 
 Lorsqu'on reçoit ce message, si le numéro de séquence est plus grand que celui qu'on avait (initialement 0), c'est un nouveau heartbeat du leader, on le prend en compte.
 Sinon, c'est un message qu'on a déjà reçu, on l'ignore. Réciproquement, le leader qui envoie son heartbeat incrémente ce compteur à chaque delta.
 
+\newpage
+\section{Exercice 3}
 
+\subsection{Question 1}
+MetricsController et NbLeaderController
+
+
+F : A chaque élection, on mesure le temps à partir du début de l'élection jusqu'à ce que le noeud ait un leader puis on calcule le pourcentage. \newline
+R : Pour chaque noeud, on calcule le nombre d'élections différentes auxquelles il participe, puis on fait la moyenne sur une unité de temps (une minute dans nos exécutions). \newline
+T : Pour chaque noeud, on calcule le temps moyen passé dans une élection, et on divise par le nombre d'élections. \newline
+M : On incrémente une variable qui mesure le nombre de messages envoyés (hors Probe Message, car on a considéré qu'ils n'étaient pas vraiment des messages d'élection), puis on divise par le nombre d'élections.
+L : A chaque step, on compte le nombre de leaders qu'il y a et on fait la moyenne sur l'exécution.
+
+Pour R, T et M on fait la moyenne sur chaque noeud, puis on divise par le nombre de noeuds du réseau pour avoir la moyenne sur toute l'exécution.
+
+On calcule pour chaque valeur sur un noeud son écart à la moyenne.
 %----------------------------------------------------------------------------------------
+
+
+\subsection{Question 2}
+
 
 \end{document}
