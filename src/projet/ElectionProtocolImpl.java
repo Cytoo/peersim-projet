@@ -477,13 +477,13 @@ public class ElectionProtocolImpl implements ElectionProtocol, MetricsProtocol {
 
 	@Override
 	public double meanElectionTime() {
-		System.out.println("timeNoLeader / numberOfElections : " + timeNoLeader + "/" + (double) numberOfElections);
+		//System.out.println("timeNoLeader / numberOfElections : " + timeNoLeader + "/" + (double) numberOfElections);
 		return ((timeNoLeader / (double) numberOfElections));
 	}
 
 	@Override
 	public double meanMessageOverhead() {
-		System.out.println("numberOfMessages / numberOfElections : " + numberOfMessages + "/" + (double) numberOfElections);
+		//System.out.println("numberOfMessages / numberOfElections : " + numberOfMessages + "/" + (double) numberOfElections);
 		return (numberOfMessages / (double) numberOfElections);
 	}
 

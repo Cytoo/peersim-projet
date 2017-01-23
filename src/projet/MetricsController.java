@@ -101,13 +101,13 @@ public class MetricsController implements Control {
 		
 		
 		System.out.println("Number of nodes : " + Network.size());
-		System.out.println("Fraction of time without a leader : " + f * 100 + "%");
+		System.out.println("Fraction of time without a leader : " + f);
 		System.out.println("Mean Election Rate : " + r + " elections per minute");
-		System.out.println("Election Rate standard deviation: " + Math.sqrt(stddevr));
+		//System.out.println("Election Rate standard deviation: " + Math.sqrt(stddevr));
 		System.out.println("Mean Election Time : " + t);
-		System.out.println("Election Time standard deviation: " + Math.sqrt(stddevt));
-		System.out.println("Mean message Overhead : " + m);
-		System.out.println("Message overhead standard deviation: " + Math.sqrt(stddevm));
+		//System.out.println("Election Time standard deviation: " + Math.sqrt(stddevt));
+		//System.out.println("Mean message Overhead : " + m);
+		//System.out.println("Message overhead standard deviation: " + Math.sqrt(stddevm));
 		
 		return true;
 	}

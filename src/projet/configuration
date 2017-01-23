@@ -1,8 +1,7 @@
 simulation.experiments 						1
 
 random.seed 								7
-network.size 								20
-
+network.size 								100
 
 simulation.endtime 							7200000
 
@@ -35,7 +34,7 @@ protocol.positionprotocol.height         	2000
 protocol.emitter		  		   			EmitterImpl
 protocol.emitter.electionprotocol  			electionprotocol
 protocol.emitter.latency 		   			200
-protocol.emitter.scope             			200
+protocol.emitter.scope             			85
 protocol.emitter.positionprotocol  			positionprotocol
 
 protocol.electionprotocol 					ElectionProtocolImpl
