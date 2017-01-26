@@ -31,7 +31,7 @@
 \usepackage[noend]{algpseudocode}
 \usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
 \usepackage{float}
-
+\usepackage{graphicx}
 %----------------------------------------------------------------------------------------
 %	TITLE SECTION
 %----------------------------------------------------------------------------------------
@@ -189,7 +189,7 @@ Le noeud source "broadcast" la valeur du leader.
 
  
 \subsection{Question 5}
-C'est le système de heartbeat avec temporisation : si on ne reçoit pas de message "je suis en vie" d'un noeud depuis un certain temps borné, on considère qu'il est en panne. 
+C'est le système de heartbeat avec temporisation : si on ne reçoit pas de message \enquote{je suis en vie} d'un noeud depuis un certain temps borné, on considère qu'il est en panne. 
 
 \subsection{Question 6}
 
@@ -200,16 +200,15 @@ la fin de la simulation.
 
 \newpage
 \section{Exercice 2}
-Dans cette section, nous allons expliquer nos choix d'implémentation des algorithmes de l'exerccice 2.
+Dans cette section, nous allons expliquer nos choix d'implémentation des algorithmes de l'exercice 2.
 
 \subsection{Question 1}
 Classe RandomWayPointProtocol.java \\
-Chaque noeud va tirer aléatoirement sa position x et y de départ et de destination. 
-Dans la fonction processEvent TODOOOOOOOOOOOOOOOOOOOOO
+Chaque noeud va tirer aléatoirement sa position x et y de départ et de destination, puis calculer sa prochaine position à partir de sa vitesse. 
 
 \subsection{Question 2}
 Classe EmitterImpl.java\\
-La méthode d'émission envoie un message à chaque noeud qui fait partie de ses voisins, c'est-à-dire qui est à une distance inférieure à scope.
+La méthode d'émission envoie un message à chaque noeud qui fait partie de ses voisins, c'est-à-dire qui est à une distance inférieure à la portée.
 
 \subsection{Question 3}
 Classe ElectionProtocolImpl.java \\
@@ -223,34 +222,34 @@ Chaque noeud tire sa valeur de décision aléatoirement. Pour cela nous avons d�
 Un noeud qui n'a pas de leader lance une élection.
 
 Lorsqu'on reçoit un message élection d'un noeud qui n'est pas notre parent, cela signifie qu'une élection à laquelle on fait partie a déjà commencé : on renvoie donc un ack à ce noeud.
-Nous avons donc besoin de différencier un ack d'un noeud "cousin" d'un ack d'un noeud "enfant", lorsqu'on remonte l'arbre à partir des feuilles.
+Nous avons donc besoin de différencier un ack d'un noeud \enquote{cousin} d'un ack d'un noeud \enquote{enfant}, lorsqu'on remonte l'arbre à partir des feuilles.
 Ici nous avons choisi de renvoyer la valeur de décision -1 lorsque l'ack vient d'un noeud qui n'est pas notre enfant. 
 
-Problème : si un noeud sort de notre réseau alors qu'on lui a envoyé un message élection, on va attendre son ack indéfiniment. 
-Pour résoudre ce problème, lors du traitement de l'événement "delta", lorsqu'un noeud sort de nos voisins on le supprime également de la liste des noeuds dont on attend un ack.
+Si un noeud sort de notre réseau alors qu'on lui a envoyé un message élection, on va attendre son ack indéfiniment. 
+Pour résoudre ce problème, lors du traitement de l'événement \enquote{delta}, lorsqu'un noeud sort de nos voisins on le supprime également de la liste des noeuds dont on attend un ack.
 
-Pour la gestion de quand on perd son parent : à chaque Ack émis on envoie aussi sa value. Donc chaque noeud qui reçoit un Ack qu'il attend doit comparer la valeur maximale appelée leaderValue à la valeur reçue, ainsi qu'à sa valeur, pour ne garder que la plus grande (c'est celle qui déterminera qui est le leader). On garde également l'id du noeud qui a remporté cette comparaison de valeur.
+Perte du parent : à chaque Ack émis on envoie aussi sa value. Donc chaque noeud qui reçoit un Ack qu'il attend doit comparer la valeur maximale appelée leaderValue à la valeur reçue, ainsi qu'à sa valeur, pour ne garder que la plus grande (c'est celle qui déterminera qui est le leader). On garde également l'id du noeud qui a remporté cette comparaison de valeur.
 
 Un noeud qui a reçu tous les Ack qu'il attendait et qui n'a pas de parent est le noeud qui a initialisé l'élection : c'est lui qui doit diffuser le message leader à tout le monde. Pour cela on considère que si la variable parent est à -1, cela signifie qu'on n'a pas de parent.
 
 Réception du message Leader :
-Si on est en élection, on met à jour notre idLeader, on diffuse le message leader à tous les noeuds de notre portée. On n'est plus en éléction, on a fini notre algo.
-Dans cette partie de l'algo il faut faire attention à ce qu'on reçoive le message leader au moment où on attend un, d'où la variable ack qui est mise à jour lorsqu'on envoie un ack à notre parent.
+Si on est en élection, on met à jour notre idLeader, on diffuse le message leader à tous les noeuds de notre portée. On n'est plus en éléction, on a fini.
 
 
 Lancement de l'algo : newElection()
 Dans le monitor, on envoie un message élection particulier avec un objet dans le "content". A la reception de ce message dans le processEvent, chaque noeud va commencer une nouvelle élection.
 
 \subsection{Question 5}
-Pour gérer la détection de la perte du leader, comme on attend un Probe message de tous nos voisins, on regarde si ce Probe message vient du leader (c'est-à-dire du noeud qui a gagné l'election, comme expliqué précedemment).
+Pour gérer la détection de la perte du leader, comme on attend un Probe message de tous nos voisins, on regarde si ce Probe message vient du leader (c'est-à-dire du noeud qui a gagné l'élection, comme expliqué précedemment).
 Dans ce cas on fait suivre ce message.
 Dans le cas où on ne reçoit pas ce message \enquote{probe leader} du leader, cela signifie qu'on l'a perdu et il faut relancer une élection.
 Ce message est différencié des autres car on envoie une valeur Long dans l'object, alors que pour les autres cette valeur sera à null.
 Ce message est propagé dans tout le réseau, donc pour éviter qu'il boucle indéfiniment dans le réseau et fausse la détection de la perte du leader, on a ajouté un numéro de séquence lié au message.
-A chaque nouveau delta, on incrémente ce numéro de séquence : seqNum dans la classe ProbeMessage
+A chaque nouveau delta, on incrémente ce numéro de séquence \textit{seqNum} dans la classe ProbeMessage.
 Lorsqu'on reçoit ce message, si le numéro de séquence est plus grand que celui qu'on avait (initialement 0), c'est un nouveau heartbeat du leader, on le prend en compte.
 Sinon, c'est un message qu'on a déjà reçu, on l'ignore. Réciproquement, le leader qui envoie son heartbeat incrémente ce compteur à chaque delta.
 
+Désormais, chaque noeud qui n'a plus de contact avec son leader va lancer une nouvelle élection.
 \newpage
 \section{Exercice 3}
 
@@ -271,18 +270,64 @@ On calcule pour chaque valeur sur un noeud son écart à la moyenne.
 
 
 \subsection{Question 2}
-Seed 7
-endtime 72000000
-Les courbes que nous avons obtenues ont la même allure que les courbes du papier.
 
+Pour nos tests :\newline
+Seed 7\newline
+endtime 72000000 \newline
+height 2000 \newline
+width  2000 \newline
+timeout 1000\newline
+pause 10000\newline
+
+\newpage
+\begin{figure}[!h]
+\centering
+\includegraphics[width=\textwidth]{mean_election_rate.png}
+\caption{Mean Election Rate}
+\label{MER}
+\end{figure}
+Comme dans l'article, sur l'ensemble des courbes, le nombre d'élections augmente jusqu'à un certain seuil (120 noeuds sur notre graphique), puis diminue avec l'augmentation du nombre de noeuds. Cela est dû au fait qu'avec un petit nombre de noeuds, beaucoup de noeuds sont isolés. Quand le nombre de noeuds augmente, les noeuds isolés vont rencontrer d'autres noeuds isolés et donc relancer des élections. Cela va former des petites composantes connexes. A partir d'un certain nombre de noeuds, une majorité des noeuds vont être connectés entre eux et donc ils n'auront plus besoin de lancer d'élection.
+
+L'allure des courbes est similaire à celle de l'article, mais les valeurs sont différentes, ce qui peut être dû aux valeurs que nous avons choisi pour le \textit{timeout}.
+
+
+\newpage
+\begin{figure}[!h]
+\centering
+\includegraphics[width=\textwidth]{fraction_time_without_leader.png}
+\caption{Fraction Time Without Leader}
+\label{FTWT}
+\end{figure}
+
+Ici, nous avons obtenu des allures de courbes complètement différentes de celles de l'article. Cela est probablement dû à la valeur de notre \textit{timeout}.
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=\textwidth]{mean_election_time.png}
+\caption{Mean Election Time}
+\label{MET}
+\end{figure}
+
+Les trois courbes sont croissantes, car plus le nombre de noeuds augmente et plus de noeuds feront partie d'une élection.
 
 \subsection{Question 3}
-Les valeurs obtenues en utilisant comme variable du système la vitesse maximale des noeuds et le nombre de noeuds font une hypothèse forte sur l'environnement de simulation : l'espace est limité à 4.10⁶m². Or, les variations de comportement dues au nombre de noeuds sont en fait dues à la densité de la simulation. 
-Il est plus pertinent de parler de densité que de nombre de noeud car on inclut la notion de largeur-longueur dans la densité.
+Les valeurs obtenues en utilisant comme variable du système la vitesse maximale des noeuds et le nombre de noeuds font une hypothèse forte sur l'environnement de simulation : l'espace est limité. Or, les variations de comportement dues au nombre de noeuds sont en fait dues à la densité de la simulation. 
+Il est plus pertinent de parler de densité que de nombre de noeud car on inclut la notion de largeur-longueur dans la densité. L'expérience peut donc passer à l'échelle.
 
 \subsection{Question 4}
 
+\begin{figure}[!h]
+\centering
+\includegraphics[width=\textwidth]{mean_leader.png}
+\caption{Mean Leader}
+\label{ML}
+\end{figure}
+
+Toutes les courbes sont décroissantes mais plus la densité est élevée, plus la courbe décroit vite. Cela semble cohérent puisqu'à faible densité, même si on augmente la portée, on aura de plus en plus de composantes connexes, mais quand même relativement peu. Plus on augmente la densité, plus on augmente la chance de former des composantes connexes qui contiendront presque tous les noeuds. 
+
+
 \subsection{Question 5}
 
+Cela signifie qu'à partir d'un certain seuil, la portée est assez grande pour qu'une grande partie des noeuds forment une composante connexe. Il ne sert donc à rien d'émettre à une portée plus importante.
 
 \end{document}
