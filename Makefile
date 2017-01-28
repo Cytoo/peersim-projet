@@ -49,4 +49,4 @@ clean:
 	@find . -name $(OUTPUT_JAR) -delete -print
 
 run:
-	java -jar $(OUTPUT_JAR) LeaderElection/configs/config-test.txt
+	java -jar $(OUTPUT_JAR) src/projet/configuration
