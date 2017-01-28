@@ -1,8 +1,10 @@
 cd at the root directory
 
-make builds the whole project into ElectionLeader.jar
+make 
+builds the whole project into ElectionLeader.jar
 
-make run runs the project
+make run 
+runs the project
 
 edit src/projet/configuration to modify config
 
