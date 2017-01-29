@@ -32,8 +32,6 @@ public class NbLeaderController implements Control {
 		}
 		stddevm += (cur - (double)l / cpt) * (cur - (double)l / cpt);
 		 l+= cur;
-		System.out.println("mean number of leader" + (double)l / (cpt));
-		System.out.println("number of leader stddev: " + Math.sqrt(stddevm / cpt));
 		return false;
 	}
 
